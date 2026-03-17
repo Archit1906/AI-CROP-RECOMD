@@ -47,17 +47,17 @@ const DiseaseDetection = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50/50 p-4 lg:p-8">
+    <div className="min-h-screen bg-transparent transition-colors duration-300 p-4 lg:p-8">
       <div className="max-w-4xl mx-auto space-y-6">
         
-        <div className="bg-gradient-to-r from-red-600 to-orange-500 rounded-2xl p-8 text-white shadow-lg relative overflow-hidden">
+        <div className="bg-gradient-to-r from-red-600 to-orange-500 dark:from-red-800 dark:to-orange-700 rounded-2xl p-8 text-white shadow-lg relative overflow-hidden transition-colors duration-300">
           <div className="relative z-10 flex items-center gap-4">
             <div className="bg-white/20 p-3 rounded-full backdrop-blur-sm">
               <Camera size={36} />
             </div>
             <div>
               <h1 className="text-3xl font-display font-bold">Plant Disease Detection</h1>
-              <p className="text-sm text-red-100 mt-1">Upload a photo of an infected leaf for instant AI diagnosis and treatment.</p>
+              <p className="text-sm text-red-100 dark:text-red-200 mt-1">Upload a photo of an infected leaf for instant AI diagnosis and treatment.</p>
             </div>
           </div>
           <div className="absolute right-0 top-0 opacity-10 transform translate-x-1/4 -translate-y-1/4">
@@ -68,29 +68,29 @@ const DiseaseDetection = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
           
           {/* Upload Section */}
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-6 flex flex-col h-full">
-            <h3 className="text-lg font-bold text-gray-800 border-b pb-2">Image Upload</h3>
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 space-y-6 flex flex-col h-full transition-colors duration-300">
+            <h3 className="text-lg font-bold text-gray-800 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2 transition-colors duration-300">Image Upload</h3>
             
             <div 
               {...getRootProps()} 
-              className={`flex-1 border-2 border-dashed rounded-xl flex items-center justify-center p-6 transition-colors cursor-pointer min-h-[250px]
-                ${isDragActive ? 'border-farm-green bg-green-50' : 'border-gray-300 hover:border-farm-green hover:bg-gray-50'}
+              className={`flex-1 border-2 border-dashed rounded-xl flex items-center justify-center p-6 cursor-pointer min-h-[250px] transition-colors duration-300
+                ${isDragActive ? 'border-farm-green bg-green-50 dark:border-green-500 dark:bg-green-900/20' : 'border-gray-300 dark:border-gray-600 hover:border-farm-green dark:hover:border-farm-light hover:bg-gray-50 dark:hover:bg-gray-700/50'}
               `}
             >
               <input {...getInputProps()} />
               {preview ? (
                 <div className="relative w-full h-full flex items-center justify-center">
                   <img src={preview} alt="Plant" className="max-h-64 object-contain rounded-lg" />
-                  <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 flex items-center justify-center rounded-lg transition-opacity">
+                  <div className="absolute inset-0 bg-black/50 opacity-0 hover:opacity-100 flex items-center justify-center rounded-lg transition-opacity duration-300">
                     <p className="text-white font-bold flex items-center gap-2">
                        <Upload size={20} /> Click to change image
                     </p>
                   </div>
                 </div>
               ) : (
-                <div className="text-center text-gray-500">
-                  <Upload size={48} className="mx-auto mb-4 text-gray-300" />
-                  <p className="font-semibold text-gray-600">Drag & drop a leaf image here</p>
+                <div className="text-center text-gray-500 dark:text-gray-400 transition-colors duration-300">
+                  <Upload size={48} className="mx-auto mb-4 text-gray-300 dark:text-gray-500 transition-colors duration-300" />
+                  <p className="font-semibold text-gray-600 dark:text-gray-300 transition-colors duration-300">Drag & drop a leaf image here</p>
                   <p className="text-sm mt-1">or click to select file</p>
                 </div>
               )}
@@ -99,8 +99,8 @@ const DiseaseDetection = () => {
             <button 
               onClick={handleAnalyze}
               disabled={!file || loading} 
-              className={`w-full font-bold py-3 px-4 rounded-xl transition duration-200 shadow-sm flex justify-center items-center gap-2
-                ${!file ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-farm-green hover:bg-green-800 text-white'}
+              className={`w-full font-bold py-3 px-4 rounded-xl transition duration-300 shadow-sm flex justify-center items-center gap-2
+                ${!file ? 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed' : 'bg-farm-green dark:bg-green-700 hover:bg-green-800 dark:hover:bg-green-600 text-white'}
               `}
             >
               {loading ? (
@@ -114,46 +114,46 @@ const DiseaseDetection = () => {
           {/* Result Section */}
           <div className="h-full">
             {result ? (
-              <div className={`p-8 rounded-2xl shadow-lg border-2 animate-in fade-in slide-in-from-bottom-4 bg-white
-                ${result.isHealthy ? 'border-farm-green' : 'border-red-500'}
+              <div className={`p-8 rounded-2xl shadow-lg border-2 animate-in fade-in slide-in-from-bottom-4 transition-colors duration-300 bg-white dark:bg-gray-800
+                ${result.isHealthy ? 'border-farm-green dark:border-farm-light' : 'border-red-500 dark:border-red-600'}
               `}>
                 <div className="flex items-center gap-4 mb-6">
-                  <div className={`p-4 rounded-full ${result.isHealthy ? 'bg-green-100 text-farm-green' : 'bg-red-100 text-red-500'}`}>
+                  <div className={`p-4 rounded-full transition-colors duration-300 ${result.isHealthy ? 'bg-green-100 dark:bg-green-900/40 text-farm-green dark:text-farm-light' : 'bg-red-100 dark:bg-red-900/40 text-red-500 dark:text-red-400'}`}>
                     {result.isHealthy ? <CheckCircle size={36} /> : <AlertCircle size={36} />}
                   </div>
                   <div>
-                    <p className="text-gray-500 font-medium text-sm">Diagnosis Result</p>
-                    <h2 className={`text-2xl font-display font-bold ${result.isHealthy ? 'text-farm-green' : 'text-red-600'}`}>
+                    <p className="text-gray-500 dark:text-gray-400 font-medium text-sm transition-colors duration-300">Diagnosis Result</p>
+                    <h2 className={`text-2xl font-display font-bold transition-colors duration-300 ${result.isHealthy ? 'text-farm-green dark:text-farm-light' : 'text-red-600 dark:text-red-400'}`}>
                       {result.disease}
                     </h2>
-                    <p className="text-xs font-bold text-gray-400 mt-1">{result.confidence} Confidence</p>
+                    <p className="text-xs font-bold text-gray-400 dark:text-gray-500 mt-1 transition-colors duration-300">{result.confidence} Confidence</p>
                   </div>
                 </div>
 
                 {!result.isHealthy && (
                   <div className="space-y-4">
-                    <div className="bg-orange-50 p-4 rounded-xl border border-orange-100">
-                      <p className="text-sm text-orange-800 font-bold mb-1 flex items-center gap-1"><Bug size={16} /> Cause</p>
-                      <p className="text-gray-700 text-sm">{result.details.cause}</p>
+                    <div className="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-xl border border-orange-100 dark:border-orange-800/40 transition-colors duration-300">
+                      <p className="text-sm text-orange-800 dark:text-orange-400 font-bold mb-1 flex items-center gap-1"><Bug size={16} /> Cause</p>
+                      <p className="text-gray-700 dark:text-gray-300 text-sm transition-colors duration-300">{result.details.cause}</p>
                     </div>
-                    <div className="bg-green-50 p-4 rounded-xl border border-green-100">
-                      <p className="text-sm text-farm-green font-bold mb-1 flex items-center gap-1"><Droplets size={16} /> Recommended Treatment</p>
-                      <p className="text-gray-700 text-sm">{result.details.cure}</p>
-                      <div className="mt-3 pt-3 border-t border-green-200">
-                        <p className="text-xs font-bold text-gray-500 uppercase">Chemical Control</p>
-                        <p className="text-farm-green font-semibold">{result.details.pesticide}</p>
+                    <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-xl border border-green-100 dark:border-green-800/40 transition-colors duration-300">
+                      <p className="text-sm text-farm-green dark:text-farm-light font-bold mb-1 flex items-center gap-1"><Droplets size={16} /> Recommended Treatment</p>
+                      <p className="text-gray-700 dark:text-gray-300 text-sm transition-colors duration-300">{result.details.cure}</p>
+                      <div className="mt-3 pt-3 border-t border-green-200 dark:border-green-800/50 transition-colors duration-300">
+                        <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Chemical Control</p>
+                        <p className="text-farm-green dark:text-farm-light font-semibold transition-colors duration-300">{result.details.pesticide}</p>
                       </div>
                     </div>
-                    <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
-                      <p className="text-sm text-blue-800 font-bold mb-1 flex items-center gap-1"><Leaf size={16} /> Prevention</p>
-                      <p className="text-gray-700 text-sm">{result.details.prevention}</p>
+                    <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800/40 transition-colors duration-300">
+                      <p className="text-sm text-blue-800 dark:text-blue-400 font-bold mb-1 flex items-center gap-1"><Leaf size={16} /> Prevention</p>
+                      <p className="text-gray-700 dark:text-gray-300 text-sm transition-colors duration-300">{result.details.prevention}</p>
                     </div>
                   </div>
                 )}
               </div>
             ) : (
-              <div className="bg-white/50 border border-dashed border-gray-300 rounded-2xl h-full flex flex-col items-center justify-center text-gray-400 p-12 min-h-[400px]">
-                <Bug size={64} className="mb-4 text-gray-300" />
+              <div className="bg-white/50 dark:bg-gray-800/50 border border-dashed border-gray-300 dark:border-gray-600 rounded-2xl h-full flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 p-12 min-h-[400px] transition-colors duration-300">
+                <Bug size={64} className="mb-4 text-gray-300 dark:text-gray-600 transition-colors duration-300" />
                 <p className="text-center">Upload an image of your crop's leaf and hit "Analyze" to detect diseases instantly.</p>
               </div>
             )}
