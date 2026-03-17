@@ -1,0 +1,16 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "crop": "Crop Recommendation",
+    "disease": "Disease Detection",
+    "weather": "Weather Intelligence",
+    "market": "Market Prices",
+    "chatbot": "AI Assistant",
+    "schemes": "Govt Schemes"
+  },
+  "crop": {
+    "title": "Discover the Best Crop",
+    "nitrogen": "Nitrogen",
+    "submit": "Get Recommendation"
+  }
+}

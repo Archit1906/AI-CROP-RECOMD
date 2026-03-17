@@ -1,0 +1,16 @@
+{
+  "nav": {
+    "dashboard": "டாஷ்போர்டு (Dashboard)",
+    "crop": "பயிர் பரிந்துரை (Crop)",
+    "disease": "நோய் கண்டறிதல் (Disease)",
+    "weather": "வானிலை (Weather)",
+    "market": "சந்தை விலை (Market)",
+    "chatbot": "AI உதவியாளர் (AI Assistant)",
+    "schemes": "அரசு திட்டங்கள் (Schemes)"
+  },
+  "crop": {
+    "title": "சிறந்த பயிரை அறிக",
+    "nitrogen": "நைட்ரஜன்",
+    "submit": "பரிந்துரை பெறு"
+  }
+}
