@@ -245,7 +245,7 @@ const CropRecommendation = () => {
   const navigate = useNavigate();
   
   const [compareMode, setCompareMode] = useState(false);
-  const [slidersA, setSlidersA] = useState({ N: 60, P: 40, K: 40, temp: 28, humidity: 65, ph: 6.5, rainfall: 120 });
+  const [slidersA, setSlidersA] = useState({ N: 80, P: 40, K: 40, temp: 25, humidity: 65, ph: 6.5, rainfall: 120 });
   const [slidersB, setSlidersB] = useState({ N: 40, P: 60, K: 30, temp: 32, humidity: 55, ph: 7.0, rainfall: 80 });
   
   const [liveResultA, setLiveResultA] = useState(mockResult);
@@ -275,13 +275,7 @@ const CropRecommendation = () => {
   useEffect(() => {
     if(!compareMode) return;
     const timer = setTimeout(() => {
-      const res = JSON.parse(JSON.stringify(mockResult));
-      res.top3[0].crop = "Wheat";
-      res.top3[0].emoji = "🌾";
-      res.top3[0].confidence = 85;
-      res.top3[1].crop = "Sugarcane";
-      res.top3[1].emoji = "🎋";
-      setLiveResultB(res);
+      // In production both would hit API, mocking comparison delay
     }, 300);
     return () => clearTimeout(timer);
   }, [slidersB, compareMode]);
@@ -289,19 +283,30 @@ const CropRecommendation = () => {
   const handleAnalyze = async () => {
     setIsAnalyzing(true);
     try {
-      // Simulate API Call
-      // await axios.post(`${import.meta.env.VITE_API_URL}/api/predict-crop`, slidersA);
-      await new Promise(r => setTimeout(r, 1500));
+      const res = await api.post('/api/predict-crop', {
+        nitrogen: slidersA.N,
+        phosphorus: slidersA.P,
+        potassium: slidersA.K,
+        temperature: slidersA.temp,
+        humidity: slidersA.humidity,
+        ph: slidersA.ph,
+        rainfall: slidersA.rainfall
+      });
+      
+      setLiveResultA(res.data);
       
       const newHistory = [{
         date: new Date().toLocaleDateString(),
-        crop: liveResultA.top3[0].crop,
-        confidence: liveResultA.top3[0].confidence,
+        crop: res.data.top3[0].crop,
+        confidence: res.data.top3[0].confidence,
         sliders: slidersA
       }, ...history].slice(0, 3);
       
       setHistory(newHistory);
       localStorage.setItem('cropHistory', JSON.stringify(newHistory));
+    } catch (err) {
+      console.error(err);
+      alert('Backend not running. Start with: uvicorn main:app --reload');
     } finally {
       setIsAnalyzing(false);
     }
