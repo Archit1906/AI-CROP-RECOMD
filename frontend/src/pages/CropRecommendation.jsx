@@ -3,6 +3,17 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { ArrowLeft, Trash2 } from 'lucide-react';
+import DialKnob from '../components/DialKnob';
+
+const PARAMS = [
+  { key:'N',        label:'Nitrogen',    unit:'kg/ha', min:0,   max:140, optimal_min:60,  optimal_max:100, color:'#FF6600', icon:'N' },
+  { key:'P',        label:'Phosphorus',  unit:'kg/ha', min:0,   max:145, optimal_min:30,  optimal_max:60,  color:'#00FFFF', icon:'P' },
+  { key:'K',        label:'Potassium',   unit:'kg/ha', min:0,   max:205, optimal_min:40,  optimal_max:80,  color:'#FFD700', icon:'K' },
+  { key:'temp',     label:'Temperature', unit:'°C',    min:0,   max:50,  optimal_min:20,  optimal_max:35,  color:'#FF0033', icon:'T' },
+  { key:'humidity', label:'Humidity',    unit:'%',     min:0,   max:100, optimal_min:50,  optimal_max:80,  color:'#00FFFF', icon:'H' },
+  { key:'ph',       label:'pH Level',    unit:'pH',    min:0,   max:14,  optimal_min:5.5, optimal_max:7.5, color:'#8B5CF6', icon:'Φ' },
+  { key:'rainfall', label:'Rainfall',    unit:'mm',    min:0,   max:300, optimal_min:100, optimal_max:200, color:'#3B82F6', icon:'R' },
+]
 
 const mockResult = {
   recommended_crop: "Rice",
@@ -20,146 +31,126 @@ const mockResult = {
   }
 };
 
-const SLIDER_CONFIG = [
-  { id: 'N', label: 'nitrogen', icon: '🧪', min: 0, max: 140, optMin: 60, optMax: 100, unit: 'KG/HA' },
-  { id: 'P', label: 'phosphorus', icon: '🔬', min: 0, max: 145, optMin: 30, optMax: 60, unit: 'KG/HA' },
-  { id: 'K', label: 'potassium', icon: '⚗️', min: 0, max: 205, optMin: 40, optMax: 80, unit: 'KG/HA' },
-  { id: 'temp', label: 'temperature', icon: '🌡️', min: 0, max: 50, optMin: 20, optMax: 35, unit: '°C' },
-  { id: 'humidity', label: 'humidity', icon: '💧', min: 0, max: 100, optMin: 50, optMax: 80, unit: '%' },
-  { id: 'ph', label: 'ph', icon: '⚖️', min: 0, max: 14, optMin: 5.5, optMax: 7.5, unit: 'PH' },
-  { id: 'rainfall', label: 'rainfall', icon: '🌧️', min: 0, max: 300, optMin: 100, optMax: 200, unit: 'MM' }
-];
-
 const InputPanel = ({ sliders, setSliders, onAnalyze, isAnalyzing, t }) => {
-  const handleSliderChange = (id, val) => {
-    setSliders(prev => ({ ...prev, [id]: Number(val) }));
-  };
-
-  // Soil Composition Ring
-  const totalNPK = sliders.N + sliders.P + sliders.K;
-  const nPer = totalNPK ? (sliders.N / totalNPK) * 100 : 33.33;
-  const pPer = totalNPK ? (sliders.P / totalNPK) * 100 : 33.33;
-  const ringStyle = {
-    background: totalNPK === 0 
-      ? '#FF660022'
-      : `conic-gradient(#FF6600 ${nPer}%, #00FFFF ${nPer}% ${nPer + pPer}%, #FF0033 ${nPer + pPer}% 100%)`
-  };
-
-  // Overall Health Score
-  const optimalCount = SLIDER_CONFIG.filter(c => sliders[c.id] >= c.optMin && sliders[c.id] <= c.optMax).length;
-  const healthScore = Math.round((optimalCount / 7) * 100);
-  const isAllOptimal = optimalCount === 7;
-
   return (
-    <div className="flex flex-col gap-6">
-      {/* Header & Soil Visualizer */}
-      <div className="flex items-center justify-between border-bottom border-nge-orange pb-4" style={{ borderBottom: '1px solid #FF660044' }}>
-        <div>
-          <p style={{ fontFamily:"'Share Tech Mono'", fontSize:10, color:'#FF660088', letterSpacing:3, margin:'0 0 4px' }}>
-            // BIOMETRIC SOIL ANALYSIS
-          </p>
-          <h1 className="text-3xl md:text-3xl font-bold text-[#FF6600] mb-2 uppercase glitch-text" style={{ fontFamily: "'Orbitron', sans-serif", letterSpacing: 2, textShadow: '0 0 15px #FF660066' }}>
-            CROP RECOMMENDATION
-          </h1>
-          <p className="text-[#666680] text-xs uppercase" style={{ fontFamily: "'Share Tech Mono', monospace", letterSpacing: 1 }}>
-            INPUT METRICS FOR MAGI EVALUATION
-          </p>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="flex flex-col items-center">
-            <div className="relative w-16 h-16 bg-[#0A0A0F] border flex items-center justify-center transition-colors duration-300 shadow-[0_0_10px_inset]" 
-                 style={{ 
-                    borderColor: healthScore >= 70 ? '#00FF41' : healthScore >= 40 ? '#FFD700' : '#FF0033',
-                    color: healthScore >= 70 ? '#00FF41' : healthScore >= 40 ? '#FFD700' : '#FF0033',
-                    borderRadius: 2
-                 }}>
-              <span className="font-bold font-display text-lg" style={{ fontFamily: "'Orbitron', sans-serif" }}>{healthScore}%</span>
-            </div>
-            <p className="text-[9px] mt-1 text-[#666680]" style={{ fontFamily: "'Share Tech Mono', monospace", letterSpacing: 1 }}>INTEGRITY</p>
-          </div>
-          <div className="hidden sm:flex flex-col items-center">
-             <div className="w-16 h-16 transition-all duration-300 shadow-[0_0_15px_#FF660044]" style={{...ringStyle, borderRadius: 2}}>
-               <div className="w-12 h-12 m-2 bg-[#0A0A0F] flex items-center justify-center" style={{ borderRadius: 2 }}>
-                 <span className="text-[10px] text-[#FF6600]" style={{ fontFamily: "'Share Tech Mono', monospace" }}>NPK</span>
-               </div>
-             </div>
-             <p className="text-[9px] mt-1 text-[#666680]" style={{ fontFamily: "'Share Tech Mono', monospace", letterSpacing: 1 }}>RATIO</p>
-          </div>
-        </div>
+    <div style={{
+      background:'#0D0D1A',
+      border:'1px solid #FF660033',
+      borderRadius:4,
+      padding:'32px 24px',
+      position:'relative'
+    }}>
+
+      {/* Section header */}
+      <div style={{ marginBottom:32, textAlign:'center' }}>
+        <p style={{ fontFamily:"'Share Tech Mono'", fontSize:9,
+                    color:'#FF660066', letterSpacing:4, margin:'0 0 6px' }}>
+          // MAGI SOIL EVALUATION INTERFACE
+        </p>
+        <p style={{ fontFamily:"'Share Tech Mono'", fontSize:10,
+                    color:'#666680', margin:0, letterSpacing:2 }}>
+          DRAG DIALS TO CALIBRATE PARAMETERS
+        </p>
       </div>
 
-      {/* Sliders */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {SLIDER_CONFIG.map((config) => {
-          const val = sliders[config.id];
-          const isOptimal = val >= config.optMin && val <= config.optMax;
-          const isLow = val < config.optMin;
-          const pct = ((val - config.min) / (config.max - config.min)) * 100;
-          
-          let barColor = isOptimal ? 'bg-[#00FF41]' : (isLow ? 'bg-[#FFD700]' : 'bg-[#FF0033]');
-          let glow = isOptimal ? '#00FF4144' : (isLow ? '#FFD70044' : '#FF003344');
-          
-          return (
-            <div key={config.id} className="bg-[#0A0A0F] border border-[#FF660044] p-4 transition-all duration-300 hover:bg-[#FF660011]" style={{ borderRadius: 2 }}>
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-[#FF660088] text-[11px] font-semibold flex items-center gap-2 uppercase" style={{ fontFamily: "'Share Tech Mono', monospace", letterSpacing: 1 }}>
-                  <span className="text-sm filter sepia hue-rotate-[-50deg] saturate-200">{config.icon}</span> {t(`crop_rec.${config.label}`) || config.label}
-                </span>
-                <span className="text-xl font-bold text-[#FF6600] tabular-nums" style={{ fontFamily: "'Orbitron', sans-serif", textShadow: `0 0 10px #FF660066` }}>
-                  {val} <span className="text-[10px] text-[#00FFFF] font-normal" style={{ fontFamily: "'Share Tech Mono', monospace" }}>{config.unit}</span>
-                </span>
-              </div>
-              
-              <div className="relative h-[6px] bg-[#0D0D1A] mt-4 overflow-hidden border border-[#FF660033]">
-                <div 
-                  className={`absolute top-0 bottom-0 left-0 ${barColor} transition-all duration-300`} 
-                  style={{ width: `${pct}%`, boxShadow: `0 0 10px ${glow}` }}
-                ></div>
-                {/* Optimal Range Highlight */}
-                <div 
-                  className="absolute top-0 bottom-0 bg-[#00FF4144]" 
-                  style={{ 
-                    left: `${((config.optMin - config.min) / (config.max - config.min)) * 100}%`,
-                    width: `${((config.optMax - config.optMin) / (config.max - config.min)) * 100}%` 
-                  }}
-                ></div>
-              </div>
-              
-              <input 
-                type="range" 
-                min={config.min} max={config.max} 
-                value={val} 
-                onChange={(e) => handleSliderChange(config.id, e.target.value)}
-                className="w-full absolute opacity-0 cursor-pointer -mt-4 h-8"
-              />
-              
-              <div className="flex justify-between mt-3 text-[9px] text-[#666680] uppercase tracking-[2px]" style={{ fontFamily: "'Share Tech Mono', monospace" }}>
-                <span>{config.min}</span>
-                <span className="text-[#FF660055]">{config.optMin} - {config.optMax} OPTIMAL</span>
-                <span>{config.max}</span>
-              </div>
-            </div>
-          );
-        })}
+      {/* Top row — 4 dials */}
+      <div style={{
+        display:'grid',
+        gridTemplateColumns:'repeat(4, 1fr)',
+        gap:24, marginBottom:32,
+        justifyItems:'center'
+      }}>
+        {PARAMS.slice(0, 4).map(p => (
+          <DialKnob key={p.key}
+            label={p.label} unit={p.unit}
+            min={p.min} max={p.max}
+            optimal_min={p.optimal_min}
+            optimal_max={p.optimal_max}
+            value={sliders[p.key]}
+            color={p.color}
+            size={100}
+            onChange={val => setSliders(prev => ({ ...prev, [p.key]: val }))}
+          />
+        ))}
       </div>
 
-      <button 
-        onClick={onAnalyze}
-        disabled={isAnalyzing}
-        className={`w-full py-4 font-bold text-[13px] text-white transition-all duration-300 flex items-center justify-center gap-2 tracking-[4px] uppercase border
-          ${isAnalyzing ? 'bg-[#0A0A0F] border-[#FF660044] text-[#FF660088]' : 'bg-[#FF660022] border-[#FF6600] text-[#FF6600] hover:bg-[#FF660044] hover:shadow-[0_0_20px_#FF660055] hover:scale-[1.01]'}
-          ${isAllOptimal && !isAnalyzing ? 'animate-pulse' : ''}
-        `}
-        style={{ fontFamily: "'Orbitron', sans-serif", borderRadius: 2 }}
-      >
-        {isAnalyzing ? (
-          <>PROCESSING BIOMETRICS...</>
-        ) : (
-          t('crop_rec.analyze_btn') || 'INITIATE ANALYSIS ►'
-        )}
+      {/* Bottom row — 3 dials centered */}
+      <div style={{
+        display:'grid',
+        gridTemplateColumns:'repeat(3, 1fr)',
+        gap:24, marginBottom:32,
+        justifyItems:'center',
+        maxWidth:520, margin:'0 auto 32px'
+      }}>
+        {PARAMS.slice(4).map(p => (
+          <DialKnob key={p.key}
+            label={p.label} unit={p.unit}
+            min={p.min} max={p.max}
+            optimal_min={p.optimal_min}
+            optimal_max={p.optimal_max}
+            value={sliders[p.key]}
+            color={p.color}
+            size={100}
+            onChange={val => setSliders(prev => ({ ...prev, [p.key]: val }))}
+          />
+        ))}
+      </div>
+
+      {/* NPK quick summary bar */}
+      <div style={{
+        display:'flex', gap:8, justifyContent:'center',
+        marginBottom:24
+      }}>
+        {[
+          { label:'N', value:sliders.N, color:'#FF6600', max:140 },
+          { label:'P', value:sliders.P, color:'#00FFFF', max:145 },
+          { label:'K', value:sliders.K, color:'#FFD700', max:205 },
+        ].map(npk => (
+          <div key={npk.label} style={{
+            background:'#0A0A0F', border:`1px solid ${npk.color}44`,
+            borderRadius:2, padding:'8px 16px', textAlign:'center', minWidth:80
+          }}>
+            <p style={{ fontFamily:"'Orbitron'", fontSize:18,
+                         fontWeight:900, color:npk.color, margin:'0 0 2px',
+                         textShadow:`0 0 10px ${npk.color}66` }}>
+              {npk.value}
+            </p>
+            <p style={{ fontFamily:"'Share Tech Mono'", fontSize:9,
+                         color:`${npk.color}88`, margin:0, letterSpacing:2 }}>
+              {npk.label}-FACTOR
+            </p>
+            <div style={{ height:3, background:`${npk.color}22`,
+                           borderRadius:1, marginTop:4 }}>
+              <div style={{
+                height:'100%', borderRadius:1,
+                width:`${(npk.value/npk.max)*100}%`,
+                background:npk.color,
+                transition:'width 0.2s'
+              }} />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Analyze button */}
+      <button onClick={onAnalyze} disabled={isAnalyzing}
+        style={{
+          display:'block', width:'100%',
+          padding:'14px', border:'1px solid #FF6600',
+          background: isAnalyzing ? '#FF660011' : '#FF660022',
+          color:'#FF6600', cursor: isAnalyzing ? 'not-allowed' : 'pointer',
+          fontFamily:"'Orbitron', sans-serif",
+          fontSize:13, fontWeight:700, letterSpacing:4,
+          textTransform:'uppercase', borderRadius:2,
+          transition:'all 0.2s',
+          boxShadow: isAnalyzing ? 'none' : '0 0 20px #FF660033'
+        }}
+        onMouseEnter={e => { if(!isAnalyzing) e.currentTarget.style.background='#FF660044' }}
+        onMouseLeave={e => { if(!isAnalyzing) e.currentTarget.style.background='#FF660022' }}>
+        {isAnalyzing ? '// ANALYZING...' : '// INITIATE MAGI ANALYSIS ►'}
       </button>
     </div>
-  );
+  )
 };
 
 const ResultPanel = ({ sliders, result, isAnalyzing, t }) => {
