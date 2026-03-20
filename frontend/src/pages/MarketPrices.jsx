@@ -1,144 +1,274 @@
-import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
-import { TrendingUp, TrendingDown, Clock, MapPin, Filter } from 'lucide-react';
+import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid,
+         Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts'
+import api from '../api/axios'
 
-const priceData = [
-  { name: 'Jan', value: 1800 },
-  { name: 'Feb', value: 1950 },
-  { name: 'Mar', value: 1850 },
-  { name: 'Apr', value: 2100 },
-  { name: 'May', value: 2250 },
-  { name: 'Jun', value: 2400 },
-];
+const STATES = ["Tamil Nadu", "Maharashtra", "Punjab", "Karnataka", "Andhra Pradesh"]
 
-const currentPrices = [
-  { crop: 'Rice (Samba)', price: 2400, unit: 'Quintal', change: '+5%', trend: 'up' },
-  { crop: 'Wheat', price: 2100, unit: 'Quintal', change: '-2%', trend: 'down' },
-  { crop: 'Cotton', price: 6500, unit: 'Quintal', change: '+1.5%', trend: 'up' },
-  { crop: 'Tomato', price: 800, unit: 'Quintal', change: '+12%', trend: 'up' },
-  { crop: 'Onion', price: 1200, unit: 'Quintal', change: '-4%', trend: 'down' },
-  { crop: 'Sugarcane', price: 315, unit: 'Quintal', change: '0%', trend: 'neutral' },
-];
+const DISTRICTS = {
+  "Tamil Nadu": ["All Districts","Chennai","Coimbatore","Madurai","Salem","Trichy","Vellore","Tirunelveli"],
+  "Maharashtra": ["All Districts","Mumbai","Pune","Nashik","Nagpur","Aurangabad"],
+  "Punjab": ["All Districts","Ludhiana","Amritsar","Jalandhar","Patiala"],
+}
 
-const MarketPrices = () => {
-  const { t } = useTranslation();
-  const [selectedCrop, setSelectedCrop] = useState('Rice (Samba)');
+export default function MarketPrices() {
+  const navigate = useNavigate()
+  const [state, setState] = useState("Tamil Nadu")
+  const [district, setDistrict] = useState("All Districts")
+  const [data, setData] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [selectedCrop, setSelectedCrop] = useState(null)
+  const [timeRange, setTimeRange] = useState("history_6m")
+  const [error, setError] = useState(null)
 
-  // Dynamic axis color based on theme
-  const isDark = document.documentElement.classList.contains('dark');
-  const axisColor = isDark ? '#9CA3AF' : '#888';
-  const gridColor = isDark ? '#374151' : '#f0f0f0';
-  const tooltipBg = isDark ? '#1F2937' : '#fff';
+  // Fetch prices when state/district changes
+  useEffect(() => {
+    fetchPrices()
+  }, [state, district])
+
+  const fetchPrices = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await api.get(`/api/market-prices/${state}?district=${district}`)
+      setData(res.data)
+      // Auto-select first crop
+      if (res.data.prices?.length > 0) {
+        setSelectedCrop(res.data.prices[0])
+      }
+    } catch (err) {
+      setError("Could not load market prices. Check backend connection.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // When user clicks a crop in the list, update chart
+  const handleCropClick = (crop) => {
+    setSelectedCrop(crop)
+  }
+
+  const chartData = selectedCrop?.[timeRange] || []
+
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload?.length) {
+      return (
+        <div style={{ background: '#162116', border: '1px solid #2D4A2D',
+                      borderRadius: 8, padding: '10px 14px' }}>
+          <p style={{ color: '#9CA3AF', fontSize: 12, margin: 0 }}>{label}</p>
+          <p style={{ color: '#22C55E', fontWeight: 700, fontSize: 16, margin: '4px 0 0' }}>
+            ₹{payload[0]?.value?.toLocaleString()}
+          </p>
+        </div>
+      )
+    }
+    return null
+  }
+
+  if (loading) return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  height: '60vh', color: '#22C55E', fontSize: 18 }}>
+      Loading market prices...
+    </div>
+  )
+
+  if (error) return (
+    <div style={{ margin: 32, padding: 20, background: '#2D0A0A',
+                  border: '1px solid #EF4444', borderRadius: 12, color: '#EF4444' }}>
+      {error} — Run: <code>uvicorn main:app --reload</code>
+    </div>
+  )
 
   return (
-    <div className="min-h-screen bg-transparent transition-colors duration-300 p-4 lg:p-8">
-      <div className="max-w-6xl mx-auto space-y-6">
-        
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-          <div>
-            <h1 className="text-3xl font-display font-bold text-farm-green dark:text-farm-light transition-colors duration-300">Market Prices</h1>
-            <p className="text-gray-500 dark:text-gray-400 mt-1 transition-colors duration-300">Live Mandi prices and historical trends.</p>
-          </div>
-          <div className="flex gap-3 w-full md:w-auto">
-            <div className="relative flex-1 md:w-48">
-              <MapPin size={16} className="absolute left-3 top-2.5 text-gray-400 dark:text-gray-500" />
-              <select className="w-full pl-9 pr-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 rounded-lg outline-none focus:border-farm-green dark:focus:border-farm-light shadow-sm text-sm transition-colors duration-300">
-                <option>Tamil Nadu</option>
-                <option>Karnataka</option>
-                <option>Andhra Pradesh</option>
-              </select>
-            </div>
-            <div className="relative flex-1 md:w-48">
-              <Filter size={16} className="absolute left-3 top-2.5 text-gray-400 dark:text-gray-500" />
-              <select className="w-full pl-9 pr-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 rounded-lg outline-none focus:border-farm-green dark:focus:border-farm-light shadow-sm text-sm transition-colors duration-300">
-                <option>All Districts</option>
-                <option>Chennai</option>
-                <option>Coimbatore</option>
-                <option>Madurai</option>
-              </select>
-            </div>
-          </div>
+    <div style={{ padding: 24, background: '#0A0F0A', minHeight: '100vh' }}>
+
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between',
+                    alignItems: 'flex-start', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
+        <div>
+          <h1 style={{ fontSize: 28, fontWeight: 700, color: '#22C55E', margin: 0 }}>
+            Market Prices
+          </h1>
+          <p style={{ color: '#6B7280', fontSize: 14, margin: '4px 0 0' }}>
+            Last updated: {data?.last_updated}
+          </p>
         </div>
 
-        {/* Action Banner */}
-        <div className="bg-gradient-to-r from-farm-gold to-yellow-600 dark:from-yellow-700 dark:to-yellow-900 p-6 rounded-2xl shadow-md text-white flex items-center justify-between transition-colors duration-300">
-          <div>
-            <h3 className="text-xl font-bold flex items-center gap-2"><Clock size={20} /> Best Time to Sell</h3>
-            <p className="mt-1 text-yellow-50 dark:text-yellow-100">Rice prices are at a 6-month high. Consider selling 50% of your stock now.</p>
+        {/* Filters */}
+        <div style={{ display: 'flex', gap: 12 }}>
+          <select value={state} onChange={e => { setState(e.target.value); setDistrict("All Districts") }}
+            style={{ background: '#162116', border: '1px solid #2D4A2D', borderRadius: 8,
+                     color: '#fff', padding: '8px 12px', fontSize: 14 }}>
+            {STATES.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+
+          <select value={district} onChange={e => setDistrict(e.target.value)}
+            style={{ background: '#162116', border: '1px solid #2D4A2D', borderRadius: 8,
+                     color: '#fff', padding: '8px 12px', fontSize: 14 }}>
+            {(DISTRICTS[state] || ["All Districts"]).map(d => <option key={d} value={d}>{d}</option>)}
+          </select>
+        </div>
+      </div>
+
+      {/* Best Time to Sell Banner */}
+      {data?.best_sell && (
+        <div style={{ background: 'linear-gradient(135deg, #78350F, #92400E)',
+                      border: '1px solid #D97706', borderRadius: 12,
+                      padding: '16px 20px', marginBottom: 24,
+                      display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontSize: 20 }}>⏰</span>
+            <div>
+              <p style={{ color: '#FCD34D', fontWeight: 700, margin: 0 }}>Best Time to Sell</p>
+              <p style={{ color: '#FDE68A', fontSize: 14, margin: '2px 0 0' }}>
+                {data.best_sell_msg}
+              </p>
+            </div>
           </div>
-          <button className="hidden md:block bg-white dark:bg-gray-800 text-yellow-700 dark:text-yellow-400 px-4 py-2 rounded-lg font-bold hover:bg-yellow-50 dark:hover:bg-gray-700 transition-colors shadow-sm">
+          <button onClick={() => navigate('/market/analytics')} style={{ background: '#D97706', border: 'none',
+                   borderRadius: 8, color: '#000', fontWeight: 700,
+                   padding: '8px 16px', cursor: 'pointer' }}>
             View Analytics
           </button>
         </div>
+      )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          
-          {/* Price Table */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden lg:col-span-1 transition-colors duration-300">
-            <div className="p-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 transition-colors duration-300">
-              <h3 className="font-bold text-gray-800 dark:text-white">Current Mandi Prices</h3>
-            </div>
-            <div className="divide-y divide-gray-100 dark:divide-gray-700">
-              {currentPrices.map((item, idx) => (
-                <div 
-                  key={idx} 
-                  onClick={() => setSelectedCrop(item.crop)}
-                  className={`p-4 flex items-center justify-between cursor-pointer transition-colors duration-300 ${selectedCrop === item.crop ? 'bg-green-50 dark:bg-green-900/30' : 'hover:bg-gray-50 dark:hover:bg-gray-700'}`}
-                >
-                  <div>
-                    <p className="font-semibold text-gray-800 dark:text-gray-200">{item.crop}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">per {item.unit}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-bold text-gray-900 dark:text-white">₹{item.price}</p>
-                    <p className={`text-xs font-bold flex items-center justify-end gap-1
-                      ${item.trend === 'up' ? 'text-green-600 dark:text-green-400' : item.trend === 'down' ? 'text-red-500 dark:text-red-400' : 'text-gray-500 dark:text-gray-400'}
-                    `}>
-                      {item.trend === 'up' && <TrendingUp size={12} />}
-                      {item.trend === 'down' && <TrendingDown size={12} />}
-                      {item.change}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
+      {/* Main Grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 16 }}>
+
+        {/* Crop List */}
+        <div style={{ background: '#162116', border: '1px solid #2D4A2D',
+                      borderRadius: 12, overflow: 'hidden' }}>
+          <div style={{ padding: '14px 16px', borderBottom: '1px solid #2D4A2D' }}>
+            <p style={{ color: '#fff', fontWeight: 600, margin: 0 }}>Current Mandi Prices</p>
+            <p style={{ color: '#6B7280', fontSize: 12, margin: '2px 0 0' }}>
+              Click any crop to see trend
+            </p>
           </div>
 
-          {/* Trend Chart */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 lg:col-span-2 flex flex-col transition-colors duration-300">
-            <div className="flex justify-between items-center mb-6">
-              <div>
-                <h3 className="font-bold text-gray-800 dark:text-white text-lg transition-colors duration-300">Price Trend: {selectedCrop}</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Comparing current month vs last 6 months</p>
+          <div style={{ overflowY: 'auto', maxHeight: 480 }}>
+            {data?.prices?.map((crop, i) => (
+              <div key={i} onClick={() => handleCropClick(crop)}
+                style={{
+                  padding: '14px 16px',
+                  cursor: 'pointer',
+                  borderBottom: '1px solid #1E2E1E',
+                  background: selectedCrop?.crop === crop.crop ? '#1E3A1E' : 'transparent',
+                  borderLeft: selectedCrop?.crop === crop.crop ? '3px solid #22C55E' : '3px solid transparent',
+                  transition: 'all 0.15s',
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                }}>
+                <div>
+                  <p style={{ color: '#fff', fontWeight: 600, margin: 0, fontSize: 15 }}>
+                    {crop.emoji} {crop.crop}
+                  </p>
+                  <p style={{ color: '#6B7280', fontSize: 12, margin: '2px 0 0' }}>
+                    per {crop.unit}
+                  </p>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <p style={{ color: '#fff', fontWeight: 700, margin: 0, fontSize: 16 }}>
+                    ₹{crop.price.toLocaleString()}
+                  </p>
+                  <p style={{ margin: '2px 0 0', fontSize: 13, fontWeight: 600,
+                               color: crop.change > 0 ? '#22C55E' : crop.change < 0 ? '#EF4444' : '#6B7280' }}>
+                    {crop.change > 0 ? '↑' : crop.change < 0 ? '↓' : '→'} {Math.abs(crop.change)}%
+                  </p>
+                </div>
               </div>
-              <div className="flex gap-2">
-                <button className="px-3 py-1 text-xs font-semibold bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded drop-shadow-sm hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-300">1M</button>
-                <button className="px-3 py-1 text-xs font-semibold bg-farm-green dark:bg-farm-light text-white dark:text-gray-900 rounded drop-shadow-sm transition-colors duration-300">6M</button>
-                <button className="px-3 py-1 text-xs font-semibold bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded drop-shadow-sm hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-300">1Y</button>
-              </div>
-            </div>
-            
-            <div className="flex-1 min-h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={priceData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={gridColor} />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: axisColor, fontSize: 12}} dy={10} />
-                  <YAxis axisLine={false} tickLine={false} tick={{fill: axisColor, fontSize: 12}} domain={['dataMin - 200', 'dataMax + 200']} />
-                  <RechartsTooltip 
-                    contentStyle={{backgroundColor: tooltipBg, borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', color: isDark ? '#fff' : '#000'}} 
-                    formatter={(value) => [`₹${value}`, 'Price (Quintal)']}
-                  />
-                  <Line type="monotone" dataKey="value" stroke={isDark ? '#4CAF50' : '#1B5E20'} strokeWidth={3} dot={{r: 4, fill: isDark ? '#4CAF50' : '#1B5E20', strokeWidth: 2, stroke: isDark ? '#1F2937' : '#fff'}} activeDot={{r: 6}} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
+            ))}
           </div>
         </div>
 
+        {/* Chart Panel */}
+        <div style={{ background: '#162116', border: '1px solid #2D4A2D',
+                      borderRadius: 12, padding: 20 }}>
+
+          {selectedCrop ? (
+            <>
+              {/* Chart Header */}
+              <div style={{ display: 'flex', justifyContent: 'space-between',
+                            alignItems: 'flex-start', marginBottom: 20 }}>
+                <div>
+                  <p style={{ color: '#fff', fontWeight: 700, fontSize: 18, margin: 0 }}>
+                    Price Trend: {selectedCrop.emoji} {selectedCrop.crop}
+                  </p>
+                  <p style={{ color: '#6B7280', fontSize: 13, margin: '4px 0 0' }}>
+                    ₹{selectedCrop.price.toLocaleString()} / {selectedCrop.unit} •
+                    <span style={{ color: selectedCrop.change > 0 ? '#22C55E' : '#EF4444',
+                                   marginLeft: 6 }}>
+                      {selectedCrop.change > 0 ? '↑' : '↓'} {Math.abs(selectedCrop.change)}% today
+                    </span>
+                  </p>
+                </div>
+
+                {/* Time Range Buttons */}
+                <div style={{ display: 'flex', gap: 6 }}>
+                  {[
+                    { key: 'history_1m', label: '1M' },
+                    { key: 'history_6m', label: '6M' },
+                    { key: 'history_1y', label: '1Y' }
+                  ].map(btn => (
+                    <button key={btn.key} onClick={() => setTimeRange(btn.key)}
+                      style={{
+                        padding: '5px 14px', borderRadius: 6, fontSize: 13,
+                        fontWeight: 600, cursor: 'pointer', border: 'none',
+                        background: timeRange === btn.key ? '#22C55E' : '#0F1A0F',
+                        color: timeRange === btn.key ? '#000' : '#9CA3AF',
+                        transition: 'all 0.15s'
+                      }}>
+                      {btn.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Line Chart */}
+              <div style={{ height: 280 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#2D4A2D" />
+                    <XAxis dataKey="month" tick={{ fill: '#9CA3AF', fontSize: 11 }}
+                           axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: '#9CA3AF', fontSize: 11 }}
+                           axisLine={false} tickLine={false}
+                           tickFormatter={v => `₹${v.toLocaleString()}`} />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Line type="monotone" dataKey="price" stroke="#22C55E"
+                          strokeWidth={2.5} dot={{ fill: '#22C55E', r: 4 }}
+                          activeDot={{ r: 7, fill: '#22C55E' }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Prediction Banner */}
+              <div style={{ marginTop: 16, padding: '12px 16px',
+                            background: '#0F1A0F', borderRadius: 8,
+                            display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <p style={{ color: '#9CA3AF', fontSize: 12, margin: 0 }}>
+                    AI Price Prediction (Next Month)
+                  </p>
+                  <p style={{ color: '#FBBF24', fontWeight: 700, fontSize: 18, margin: '4px 0 0' }}>
+                    ₹{Math.round(selectedCrop.price * 1.05).toLocaleString()}
+                  </p>
+                </div>
+                <span style={{ background: selectedCrop.change > 3 ? '#14532D' : '#1C1917',
+                               color: selectedCrop.change > 3 ? '#22C55E' : '#9CA3AF',
+                               padding: '6px 14px', borderRadius: 20, fontSize: 13, fontWeight: 600 }}>
+                  {selectedCrop.change > 3 ? '✓ Good time to sell' : 'Hold for better price'}
+                </span>
+              </div>
+            </>
+          ) : (
+            <div style={{ height: 300, display: 'flex', alignItems: 'center',
+                          justifyContent: 'center', color: '#6B7280' }}>
+              Select a crop to see price trend
+            </div>
+          )}
+        </div>
       </div>
     </div>
-  );
-};
-
-export default MarketPrices;
+  )
+}

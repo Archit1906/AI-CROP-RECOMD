@@ -1,0 +1,6 @@
+# .gitignore
+.env
+__pycache__/
+*.pkl
+*.h5
+node_modules/

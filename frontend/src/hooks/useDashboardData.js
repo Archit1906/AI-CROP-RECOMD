@@ -1,90 +1,57 @@
 import { useState, useEffect } from 'react';
-import api from '../api/axios';
 
 export const useWeather = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchWeather = async () => {
-      try {
-        const response = await api.get('/api/weather?city=Chennai');
-        setData(response.data);
-      } catch (err) {
-        setError('Failed to load weather data');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchWeather();
+    setTimeout(() => {
+      setData({ temp: '30°C', location: 'Chennai, TN' });
+      setLoading(false);
+    }, 500);
   }, []);
 
-  return { data, loading, error };
+  return { data, loading, error: null };
 };
 
 export const useCropData = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchCropData = async () => {
-      try {
-        const response = await api.get('/api/crop/current');
-        setData(response.data);
-      } catch (err) {
-        setError('Failed to load crop data');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchCropData();
+    setTimeout(() => {
+      setData({ name: 'Samba Rice', stage: 'Day 45 / 120' });
+      setLoading(false);
+    }, 600);
   }, []);
 
-  return { data, loading, error };
+  return { data, loading, error: null };
 };
 
 export const useMarketPrices = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchMarketPrices = async () => {
-      try {
-        const response = await api.get('/api/market/latest');
-        setData(response.data);
-      } catch (err) {
-        setError('Failed to load market prices');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchMarketPrices();
+    setTimeout(() => {
+      setData({ price: '₹2,400/q', trend: '+5.0% today' });
+      setLoading(false);
+    }, 700);
   }, []);
 
-  return { data, loading, error };
+  return { data, loading, error: null };
 };
 
 export const useFarmHealth = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchFarmHealth = async () => {
-      try {
-        const response = await api.get('/api/farm/health');
-        setData(response.data);
-      } catch (err) {
-        setError('Failed to load farm health');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchFarmHealth();
+    setTimeout(() => {
+      setData({ score: '94%', status: 'Excellent condition' });
+      setLoading(false);
+    }, 800);
   }, []);
 
-  return { data, loading, error };
+  return { data, loading, error: null };
 };

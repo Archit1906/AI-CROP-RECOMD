@@ -6,6 +6,7 @@ import CropRecommendation from './pages/CropRecommendation';
 import DiseaseDetection from './pages/DiseaseDetection';
 import WeatherPage from './pages/WeatherPage';
 import MarketPrices from './pages/MarketPrices';
+import MarketAnalytics from './pages/MarketAnalytics';
 import Chatbot from './pages/Chatbot';
 import GovernmentSchemes from './pages/GovernmentSchemes';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -23,6 +24,7 @@ export default function App() {
               <Route path="/disease" element={<DiseaseDetection />} />
               <Route path="/weather" element={<WeatherPage />} />
               <Route path="/market" element={<MarketPrices />} />
+              <Route path="/market/analytics" element={<MarketAnalytics />} />
               <Route path="/chat" element={<Chatbot />} />
               <Route path="/schemes" element={<GovernmentSchemes />} />
             </Routes>
