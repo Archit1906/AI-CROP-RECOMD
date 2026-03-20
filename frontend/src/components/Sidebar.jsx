@@ -24,6 +24,7 @@ const Sidebar = () => {
 
   const changeLanguage = (lng) => {
     i18n.changeLanguage(lng);
+    localStorage.setItem('lang', lng);
   };
 
   const navItems = [
@@ -37,11 +38,12 @@ const Sidebar = () => {
   ];
 
   return (
-    <div className={`bg-white dark:bg-gray-800 shadow-xl h-full flex flex-col transition-all duration-300 ${isExpanded ? 'w-64' : 'w-20 lg:w-64'} fixed lg:relative z-50 border-r border-gray-100 dark:border-gray-700`}>
-      <div className="flex items-center justify-between p-4 bg-farm-green dark:bg-gray-900 text-white transition-colors duration-300">
-        <div className={`flex items-center space-x-2 font-display font-bold text-xl ${!isExpanded && 'lg:flex hidden'}`}>
-          <Sprout size={28} className="text-farm-gold" />
-          <span>AmritKrishi</span>
+    <div className={`bg-white dark:bg-[#0F1A0F] shadow-xl h-full flex flex-col transition-all duration-200 ${isExpanded ? 'w-64' : 'w-20 lg:w-64'} fixed lg:relative z-50 border-r border-gray-100 dark:border-[#2D4A2D]`}>
+      <div className="flex items-center justify-between p-4 bg-farm-green dark:bg-transparent text-white transition-colors duration-200">
+        <div className={`flex items-center space-x-2 font-display text-2xl ${!isExpanded && 'lg:flex hidden'}`}>
+          <span>🌾</span>
+          <span className="font-bold text-white">Amrit</span>
+          <span className="font-bold text-[#22C55E]">Krishi</span>
         </div>
         <div className="lg:hidden flex items-center justify-center w-full">
            <button onClick={() => setIsExpanded(!isExpanded)} className="p-1 hover:bg-farm-light rounded">
@@ -56,8 +58,8 @@ const Sidebar = () => {
             key={item.to}
             to={item.to}
             className={({ isActive }) =>
-              `flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors duration-300 ${
-                isActive ? 'bg-farm-light/10 dark:bg-farm-light/20 text-farm-green dark:text-farm-light font-bold' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-farm-green dark:hover:text-farm-light'
+              `flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                isActive ? 'bg-green-500/20 text-green-400 border border-green-500/30 font-bold' : 'text-gray-400 hover:bg-[#1E2E1E] hover:text-white border border-transparent'
               }`
             }
             onClick={() => setIsExpanded(false)} // Close on mobile navigation
@@ -68,34 +70,34 @@ const Sidebar = () => {
         ))}
       </nav>
 
-      <div className="p-4 border-t border-gray-200 dark:border-gray-700 transition-colors duration-300">
+      <div className="p-4 border-t border-gray-100 dark:border-[#2D4A2D] transition-colors duration-200">
         
         {/* Dark Mode Toggle */}
         <button 
           onClick={toggleDarkMode}
-          className={`w-full flex items-center justify-center lg:justify-start space-x-3 p-3 rounded-lg mb-4 transition-colors duration-300 bg-gray-50 hover:bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300`}
+          className={`w-full flex items-center justify-center lg:justify-start space-x-3 p-3 rounded-xl mb-4 transition-colors duration-200 bg-gray-50 hover:bg-gray-100 dark:bg-[#162116] dark:hover:bg-[#1E2E1E] text-gray-600 dark:text-gray-400`}
         >
-          {isDarkMode ? <Sun size={20} className="text-farm-gold" /> : <Moon size={20} />}
+          {isDarkMode ? <Sun size={20} className="text-[#FBBF24]" /> : <Moon size={20} />}
           <span className={`font-semibold ${!isExpanded && 'lg:block hidden'}`}>
             {isDarkMode ? 'Light Mode' : 'Dark Mode'}
           </span>
         </button>
 
-        <div className={`bg-gray-50 dark:bg-gray-700 p-2 rounded-lg transition-colors duration-300 ${!isExpanded && 'lg:block hidden'}`}>
+        <div className={`bg-gray-50 dark:bg-[#162116] p-2 rounded-xl transition-colors duration-200 ${!isExpanded && 'lg:block hidden'}`}>
           <div className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400 mb-2 font-semibold">
             <Languages size={16} />
             <span className={`${!isExpanded && 'lg:block hidden'}`}>Language</span>
           </div>
           <div className={`flex flex-col space-y-1 ${!isExpanded && 'lg:block hidden'}`}>
-            <button onClick={() => changeLanguage('en')} className={`text-left text-sm p-1 rounded hover:bg-white dark:hover:bg-gray-600 dark:text-gray-200 ${i18n.language === 'en' ? 'font-bold text-farm-green dark:text-farm-light' : ''}`}>English</button>
-            <button onClick={() => changeLanguage('ta')} className={`text-left text-sm p-1 rounded hover:bg-white dark:hover:bg-gray-600 dark:text-gray-200 ${i18n.language === 'ta' ? 'font-bold text-farm-green dark:text-farm-light' : ''}`}>தமிழ்</button>
-            <button onClick={() => changeLanguage('hi')} className={`text-left text-sm p-1 rounded hover:bg-white dark:hover:bg-gray-600 dark:text-gray-200 ${i18n.language === 'hi' ? 'font-bold text-farm-green dark:text-farm-light' : ''}`}>हिंदी</button>
+            <button onClick={() => changeLanguage('en')} className={`text-left text-sm px-3 py-2 rounded-xl transition-all duration-200 ${i18n.language === 'en' ? 'bg-green-500 text-black font-bold' : 'text-gray-400 hover:bg-[#1E2E1E] hover:text-white'}`}>English</button>
+            <button onClick={() => changeLanguage('ta')} className={`text-left text-sm px-3 py-2 rounded-xl transition-all duration-200 ${i18n.language === 'ta' ? 'bg-green-500 text-black font-bold' : 'text-gray-400 hover:bg-[#1E2E1E] hover:text-white'}`}>தமிழ்</button>
+            <button onClick={() => changeLanguage('hi')} className={`text-left text-sm px-3 py-2 rounded-xl transition-all duration-200 ${i18n.language === 'hi' ? 'bg-green-500 text-black font-bold' : 'text-gray-400 hover:bg-[#1E2E1E] hover:text-white'}`}>हिंदी</button>
           </div>
           {/* Condensed lang toggle */}
           <div className={`lg:hidden flex flex-col items-center space-y-2 py-2 ${isExpanded ? 'hidden' : 'flex'}`}>
-            <button onClick={() => changeLanguage('en')} className={`text-xs ${i18n.language === 'en' ? 'text-farm-green dark:text-farm-light font-bold' : 'text-gray-400 dark:text-gray-500'}`}>EN</button>
-            <button onClick={() => changeLanguage('ta')} className={`text-xs ${i18n.language === 'ta' ? 'text-farm-green dark:text-farm-light font-bold' : 'text-gray-400 dark:text-gray-500'}`}>TA</button>
-            <button onClick={() => changeLanguage('hi')} className={`text-xs ${i18n.language === 'hi' ? 'text-farm-green dark:text-farm-light font-bold' : 'text-gray-400 dark:text-gray-500'}`}>HI</button>
+            <button onClick={() => changeLanguage('en')} className={`text-xs px-2 py-1 rounded-full ${i18n.language === 'en' ? 'bg-green-500 text-black font-bold' : 'text-gray-400'}`}>EN</button>
+            <button onClick={() => changeLanguage('ta')} className={`text-xs px-2 py-1 rounded-full ${i18n.language === 'ta' ? 'bg-green-500 text-black font-bold' : 'text-gray-400'}`}>த</button>
+            <button onClick={() => changeLanguage('hi')} className={`text-xs px-2 py-1 rounded-full ${i18n.language === 'hi' ? 'bg-green-500 text-black font-bold' : 'text-gray-400'}`}>हि</button>
           </div>
         </div>
       </div>
