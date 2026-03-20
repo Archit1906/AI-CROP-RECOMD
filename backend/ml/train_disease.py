@@ -1,19 +1,58 @@
-import os
+# Download PlantVillage dataset first:
+# https://www.kaggle.com/datasets/abdallahalidev/plantvillage-dataset
+# Extract to: backend/ml/plantvillage/
+
 import tensorflow as tf
+from tensorflow.keras.applications import MobileNetV2
+from tensorflow.keras.layers import Dense, GlobalAveragePooling2D, Dropout
+from tensorflow.keras.models import Model
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+import os
 
-print("Training plant disease CNN...")
-print("Loading MobileNetV2 architecture...")
+DATASET_PATH = "plantvillage/"
+IMG_SIZE     = (224, 224)
+BATCH_SIZE   = 32
+EPOCHS       = 10
+NUM_CLASSES  = 38
 
-# Create a simple dummy model to save as .h5
-inputs = tf.keras.Input(shape=(224, 224, 3))
-x = tf.keras.layers.GlobalAveragePooling2D()(inputs)
-outputs = tf.keras.layers.Dense(38, activation='softmax')(x)
-model = tf.keras.Model(inputs, outputs)
+# Data generators
+train_gen = ImageDataGenerator(
+    rescale=1./255,
+    validation_split=0.2,
+    rotation_range=20,
+    horizontal_flip=True,
+    zoom_range=0.2
+)
 
-model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+if os.path.exists(DATASET_PATH):
+    train_data = train_gen.flow_from_directory(
+        DATASET_PATH, target_size=IMG_SIZE,
+        batch_size=BATCH_SIZE, subset='training',
+        class_mode='categorical'
+    )
 
-print("Accuracy: 92.10%")
+    val_data = train_gen.flow_from_directory(
+        DATASET_PATH, target_size=IMG_SIZE,
+        batch_size=BATCH_SIZE, subset='validation',
+        class_mode='categorical'
+    )
 
-os.makedirs("../models", exist_ok=True)
-model.save("../models/plant_disease_model.h5")
-print("Saved plant_disease_model.h5")
+    # MobileNetV2 transfer learning
+    base = MobileNetV2(weights='imagenet', include_top=False, input_shape=(224,224,3))
+    base.trainable = False
+
+    x = GlobalAveragePooling2D()(base.output)
+    x = Dense(256, activation='relu')(x)
+    x = Dropout(0.3)(x)
+    out = Dense(NUM_CLASSES, activation='softmax')(x)
+
+    model = Model(inputs=base.input, outputs=out)
+    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+
+    model.fit(train_data, validation_data=val_data, epochs=EPOCHS)
+
+    os.makedirs("../models", exist_ok=True)
+    model.save("../models/plant_disease_model.h5")
+    print("✅ Model saved!")
+else:
+    print(f"Dataset path {DATASET_PATH} not found. Please download it first.")
