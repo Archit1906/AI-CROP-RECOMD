@@ -34,7 +34,7 @@ export default function WeatherPage() {
       const res = await api.get(`/api/weather/${cityName}`)
       setData(res.data)
     } catch {
-      setError(`Could not fetch weather for "${cityName}". Try another city.`)
+      setError(`WARNING: THREAT ANALYSIS FOR "${cityName}" FAILED.`)
     } finally {
       setLoading(false)
     }
@@ -54,19 +54,20 @@ export default function WeatherPage() {
   }
 
   const alertColors = {
-    danger:  { bg: "#2D0A0A", border: "#EF4444", text: "#FCA5A5" },
-    warning: { bg: "#2D1A00", border: "#FBBF24", text: "#FDE68A" },
-    info:    { bg: "#0A1A2D", border: "#3B82F6", text: "#93C5FD" },
-    success: { bg: "#0A2D0A", border: "#22C55E", text: "#86EFAC" },
+    danger:  { bg: "#1A0500", border: "#FF0033", text: "#FF0033" },
+    warning: { bg: "#1A1A00", border: "#FFD700", text: "#FFD700" },
+    info:    { bg: "#0D0D1A", border: "#00FFFF", text: "#00FFFF" },
+    success: { bg: "#0A1A0A", border: "#00FF41", text: "#00FF41" },
   }
 
-  const RainfallTooltip = ({ active, payload, label }) => {
+  const NgeTooltip = ({ active, payload, label }) => {
     if (active && payload?.length) return (
-      <div style={{ background: '#162116', border: '1px solid #2D4A2D',
-                    borderRadius: 8, padding: '8px 14px' }}>
-        <p style={{ color: '#9CA3AF', fontSize: 12, margin: 0 }}>{label}</p>
-        <p style={{ color: '#3B82F6', fontWeight: 700, margin: '4px 0 0' }}>
-          {payload[0].value} mm
+      <div style={{ background: '#0D0D1A', border: '1px solid #FF6600',
+                    borderRadius: 2, padding: '10px 14px', fontFamily: "'Share Tech Mono', monospace" }}>
+        <p style={{ color: '#FF660088', fontSize: 9, margin: '0 0 4px', letterSpacing: 2 }}>// DATA POINT</p>
+        <p style={{ color: '#FF6600', fontSize: 12, margin: '0 0 4px' }}>{label}</p>
+        <p style={{ color: '#00FFFF', fontWeight: 700, margin: 0, fontSize: 13 }}>
+          RAINFALL: {payload[0].value} mm
         </p>
       </div>
     )
@@ -74,25 +75,25 @@ export default function WeatherPage() {
   }
 
   if (loading) return (
-    <div style={{ padding: 24 }}>
-      <h1 style={{ fontSize: 28, fontWeight: 700, color: '#22C55E', margin: '0 0 8px' }}>
-        Weather Intelligence
+    <div className="hex-bg" style={{ padding: 24, background: '#0A0A0F', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <h1 style={{ fontSize: 28, fontWeight: 900, color: '#FF6600', margin: '0 0 8px', fontFamily: "'Orbitron', sans-serif", letterSpacing: 4, textTransform: 'uppercase' }} className="glitch-text">
+        ATMOSPHERIC THREAT ANALYSIS
       </h1>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    height: '50vh', flexDirection: 'column', gap: 12 }}>
-        <span style={{ fontSize: 52, animation: 'spin 1s linear infinite' }}>🌀</span>
-        <p style={{ color: '#22C55E', fontSize: 16 }}>
-          Fetching weather for {city}...
-        </p>
+                    flex: 1, flexDirection: 'column', gap: 12 }}>
+        <div className="flicker" style={{ color: '#FF6600', fontSize: 14, fontFamily: "'Share Tech Mono', monospace", letterSpacing: 3 }}>
+          // SCANNING TARGET REGION: {city.toUpperCase()} ...
+        </div>
       </div>
-      <style>{`@keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }`}</style>
     </div>
   )
 
   if (error) return (
-    <div style={{ margin:32, padding:20, background:'#2D0A0A',
-                  border:'1px solid #EF4444', borderRadius:12, color:'#EF4444' }}>
-      {error}
+    <div className="hex-bg" style={{ padding: 24, background: '#0A0A0F', minHeight: '100vh' }}>
+      <div style={{ margin:32, padding:20, background:'#1A0500',
+                    border:'1px solid #FF0033', borderRadius:2, color:'#FF0033', fontFamily: "'Share Tech Mono', monospace" }}>
+        {error}
+      </div>
     </div>
   )
 
@@ -100,69 +101,80 @@ export default function WeatherPage() {
   const sowing = data?.sowing
 
   return (
-    <div style={{ padding:24, background:'#0A0F0A', minHeight:'100vh' }}>
+    <div className="hex-bg" style={{ padding:24, background:'#0A0A0F', minHeight:'100vh', fontFamily: "'Rajdhani', sans-serif" }}>
 
       {/* Header + Search */}
       <div style={{ display:'flex', justifyContent:'space-between',
                     alignItems:'center', marginBottom:24, flexWrap:'wrap', gap:12 }}>
         <div>
-          <h1 style={{ fontSize:28, fontWeight:700, color:'#22C55E', margin:0 }}>
-            Weather Intelligence
+          <p style={{ fontFamily:"'Share Tech Mono'", fontSize:10, color:'#FF660088',
+                      letterSpacing:3, margin:'0 0 4px' }}>
+            // MAGI ENVIRONMENTAL SENSORS
+          </p>
+          <h1 style={{ fontSize:28, fontWeight:900, color:'#FF6600', margin:0, fontFamily: "'Orbitron', sans-serif", letterSpacing: 4, textTransform: 'uppercase', textShadow: '0 0 20px #FF660066' }} className="glitch-text">
+            ATMOSPHERIC THREAT ANALYSIS
           </h1>
-          <p style={{ color:'#6B7280', fontSize:13, margin:'4px 0 0' }}>
-            Updated: {data?.last_updated}
+          <p style={{ color:'#666680', fontSize:11, margin:'4px 0 0', fontFamily: "'Share Tech Mono', monospace", letterSpacing: 1 }}>
+            LAST INTEL: {data?.last_updated}
           </p>
         </div>
 
         {/* Search bar */}
         <form onSubmit={handleSearch} style={{ display:'flex', gap:8 }}>
           <input value={searchInput} onChange={e => setSearchInput(e.target.value)}
-            placeholder="Search any city..."
-            style={{ background:'#162116', border:'1px solid #2D4A2D', borderRadius:8,
-                     color:'#fff', padding:'8px 14px', fontSize:14, width:200,
-                     outline:'none' }} />
+            placeholder="SCAN REGION..."
+            style={{ background:'#0A0A0F', border:'1px solid #FF660066', borderRadius:2,
+                     color:'#E8E8E8', padding:'10px 14px', fontSize:14, width:220,
+                     outline:'none', fontFamily: "'Share Tech Mono', monospace" }}
+            onFocus={e => { e.target.style.borderColor = '#FF6600'; e.target.style.boxShadow = '0 0 10px #FF660033'; }}
+            onBlur={e => { e.target.style.borderColor = '#FF660066'; e.target.style.boxShadow = 'none'; }}
+          />
           <button type="submit"
-            style={{ background:'#22C55E', border:'none', borderRadius:8,
-                     color:'#000', fontWeight:700, padding:'8px 16px', cursor:'pointer' }}>
-            Search
+            style={{ background:'#FF660022', border:'1px solid #FF6600', borderRadius:2,
+                     color:'#FF6600', fontWeight:700, padding:'10px 20px', cursor:'pointer', fontFamily: "'Orbitron', sans-serif", letterSpacing: 3, transition: 'all 0.2s' }}
+            onMouseEnter={e => { e.target.style.background = '#FF660044'; e.target.style.boxShadow = '0 0 20px #FF660044'; }}
+            onMouseLeave={e => { e.target.style.background = '#FF660022'; e.target.style.boxShadow = 'none'; }}
+          >
+            TARGET
           </button>
         </form>
       </div>
 
       {/* Quick city chips */}
       <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:24 }}>
-        {TN_CITIES.map(c => (
-          <button key={c} onClick={() => handleCityChip(c)}
-            style={{ padding:'5px 14px', borderRadius:20, fontSize:13,
+        {TN_CITIES.map(c_name => (
+          <button key={c_name} onClick={() => handleCityChip(c_name)}
+            style={{ padding:'6px 14px', borderRadius:2, fontSize:11,
                      cursor:'pointer', border:'1px solid',
-                     borderColor: city===c ? '#22C55E' : '#2D4A2D',
-                     background: city===c ? '#14532D' : 'transparent',
-                     color: city===c ? '#22C55E' : '#9CA3AF',
-                     transition:'all 0.15s' }}>
-            {c}
+                     borderColor: city===c_name ? '#FF6600' : '#FF660044',
+                     background: city===c_name ? '#FF660022' : '#0D0D1A',
+                     color: city===c_name ? '#FF6600' : '#666680',
+                     transition:'all 0.15s', fontFamily: "'Share Tech Mono', monospace", textTransform: 'uppercase' }}
+            onMouseEnter={e => { if(city!==c_name) { e.target.style.borderColor = '#FF6600'; e.target.style.background = '#FF660011' } }}
+            onMouseLeave={e => { if(city!==c_name) { e.target.style.borderColor = '#FF660044'; e.target.style.background = '#0D0D1A' } }}
+          >
+            {c_name}
           </button>
         ))}
       </div>
 
       {/* Current Weather Hero Card */}
-      <div style={{ background:'linear-gradient(135deg, #0F2A0F, #162116)',
-                    border:'1px solid #2D4A2D', borderRadius:16,
-                    padding:28, marginBottom:20 }}>
+      <div className="nge-card" data-label="// TACTICAL BRIEFING" style={{ padding:28, marginBottom:20 }}>
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:24 }}>
 
           {/* Left: Main temp */}
           <div>
-            <p style={{ color:'#9CA3AF', fontSize:14, margin:'0 0 4px' }}>
-              📍 {data?.city}
+            <p style={{ color:'#FF6600', fontSize:14, margin:'0 0 4px', fontFamily: "'Share Tech Mono', monospace", letterSpacing: 2 }}>
+              LOC: {data?.city.toUpperCase()}
             </p>
-            <div style={{ display:'flex', alignItems:'center', gap:16 }}>
-              <span style={{ fontSize:72 }}>{WEATHER_ICONS[c?.icon] || '🌤️'}</span>
+            <div style={{ display:'flex', alignItems:'center', gap:16, marginTop: 10 }}>
+              <span style={{ fontSize:72, filter: 'sepia(1) hue-rotate(-50deg) saturate(3)' }}>{WEATHER_ICONS[c?.icon] || '🌤️'}</span>
               <div>
-                <p style={{ fontSize:64, fontWeight:800, color:'#fff', margin:0, lineHeight:1 }}>
+                <p style={{ fontSize:72, fontWeight:900, color:'#FF6600', margin:0, lineHeight:1, fontFamily: "'Orbitron', sans-serif", textShadow: '0 0 20px #FF660066' }}>
                   {c?.temp}°
                 </p>
-                <p style={{ color:'#9CA3AF', fontSize:15, margin:'6px 0 0' }}>
-                  {c?.description} · Feels like {c?.feels_like}°C
+                <p style={{ color:'#00FFFF', fontSize:13, margin:'6px 0 0', fontFamily: "'Share Tech Mono', monospace", textTransform: 'uppercase', letterSpacing: 1 }}>
+                  {c?.description} // FEELS LIKE {c?.feels_like}°C
                 </p>
               </div>
             </div>
@@ -171,18 +183,18 @@ export default function WeatherPage() {
           {/* Right: Stats grid */}
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
             {[
-              { icon:'💧', label:'Humidity',    value:`${c?.humidity}%` },
-              { icon:'💨', label:'Wind',         value:`${c?.wind_kmh} km/h` },
-              { icon:'📊', label:'Pressure',     value:`${c?.pressure} hPa` },
-              { icon:'👁️', label:'Visibility',   value:`${c?.visibility} km` },
+              { icon:'💧', label:'HUMIDITY',    value:`${c?.humidity}%` },
+              { icon:'💨', label:'WIND SPD',    value:`${c?.wind_kmh} KM/H` },
+              { icon:'📊', label:'PRESSURE',    value:`${c?.pressure} HPA` },
+              { icon:'👁️', label:'VISIBILITY',  value:`${c?.visibility} KM` },
             ].map(stat => (
               <div key={stat.label}
-                style={{ background:'rgba(0,0,0,0.3)', borderRadius:10,
-                         padding:'12px 14px', border:'1px solid #2D4A2D' }}>
-                <p style={{ color:'#6B7280', fontSize:12, margin:'0 0 4px' }}>
+                style={{ background:'#0A0A0F', borderRadius:2,
+                         padding:'12px 14px', border:'1px solid #FF660044' }}>
+                <p style={{ color:'#FF660088', fontSize:11, margin:'0 0 4px', fontFamily: "'Share Tech Mono', monospace", letterSpacing: 1 }}>
                   {stat.icon} {stat.label}
                 </p>
-                <p style={{ color:'#fff', fontWeight:700, fontSize:18, margin:0 }}>
+                <p style={{ color:'#FF6600', fontWeight:700, fontSize:18, margin:0, fontFamily: "'Orbitron', sans-serif", letterSpacing: 1 }}>
                   {stat.value}
                 </p>
               </div>
@@ -191,22 +203,22 @@ export default function WeatherPage() {
         </div>
 
         {/* Humidity + Wind visual gauges */}
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16, marginTop:20 }}>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16, marginTop:24 }}>
           {[
-            { label:'Humidity', value:c?.humidity, max:100, color:'#3B82F6', unit:'%' },
-            { label:'Wind Speed', value:c?.wind_kmh, max:100, color:'#8B5CF6', unit:' km/h' },
+            { label:'ATMOSPHERIC MOISTURE', value:c?.humidity, max:100, color:'#00FFFF', unit:'%' },
+            { label:'WIND VELOCITY', value:c?.wind_kmh, max:100, color:'#FF6600', unit:' KM/H' },
           ].map(gauge => (
             <div key={gauge.label}>
               <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}>
-                <span style={{ color:'#9CA3AF', fontSize:13 }}>{gauge.label}</span>
-                <span style={{ color:'#fff', fontSize:13, fontWeight:600 }}>
+                <span style={{ color:'#666680', fontSize:11, fontFamily: "'Share Tech Mono', monospace" }}>// {gauge.label}</span>
+                <span style={{ color:gauge.color, fontSize:12, fontWeight:600, fontFamily: "'Share Tech Mono', monospace" }}>
                   {gauge.value}{gauge.unit}
                 </span>
               </div>
-              <div style={{ height:8, background:'#2D4A2D', borderRadius:4, overflow:'hidden' }}>
+              <div style={{ height:4, background:'#0A0A0F', borderRadius:0, overflow:'hidden', border: '1px solid #FF660033' }}>
                 <div style={{ height:'100%', width:`${(gauge.value/gauge.max)*100}%`,
-                              background:gauge.color, borderRadius:4,
-                              transition:'width 1s ease' }} />
+                              background:gauge.color,
+                              transition:'width 1s ease', boxShadow: `0 0 10px ${gauge.color}88` }} />
               </div>
             </div>
           ))}
@@ -214,26 +226,27 @@ export default function WeatherPage() {
       </div>
 
       {/* 7-Day Forecast */}
-      <div style={{ background:'#162116', border:'1px solid #2D4A2D',
-                    borderRadius:16, padding:20, marginBottom:20 }}>
-        <p style={{ color:'#fff', fontWeight:700, fontSize:16, margin:'0 0 16px' }}>
-          7-Day Forecast
+      <div className="nge-card" data-label="// 7-DAY PROJECTION" style={{ padding:20, marginBottom:20 }}>
+        <p style={{ color:'#FF6600', fontWeight:700, fontSize:16, margin:'0 0 16px', fontFamily: "'Orbitron', sans-serif", letterSpacing: 3 }}>
+          LONG-TERM PROJECTION
         </p>
         <div style={{ display:'grid', gridTemplateColumns:'repeat(7, 1fr)', gap:8 }}>
           {data?.forecast?.map((day, i) => (
-            <div key={i} style={{ background:'#0F1A0F', borderRadius:10,
+            <div key={i} style={{ background:'#0A0A0F', borderRadius:2,
                                    padding:'12px 8px', textAlign:'center',
-                                   border:'1px solid #2D4A2D' }}>
-              <p style={{ color:'#9CA3AF', fontSize:12, margin:'0 0 8px' }}>{day.day}</p>
-              <span style={{ fontSize:28 }}>{WEATHER_ICONS[day.icon] || '🌤️'}</span>
-              <p style={{ color:'#fff', fontWeight:700, fontSize:15, margin:'8px 0 2px' }}>
+                                   border:'1px solid #FF660044', transition: 'all 0.2s' }}
+                 className="nge-hover">
+              <p style={{ color:'#FF660088', fontSize:11, margin:'0 0 8px', fontFamily: "'Share Tech Mono', monospace" }}>DAY-{i+1}</p>
+              <p style={{ color:'#00FFFF', fontSize:12, margin:'0 0 8px', fontWeight: 700, fontFamily: "'Rajdhani', sans-serif" }}>{day.day.toUpperCase()}</p>
+              <span style={{ fontSize:28, filter: 'sepia(1) hue-rotate(-50deg) saturate(3)' }}>{WEATHER_ICONS[day.icon] || '🌤️'}</span>
+              <p style={{ color:'#FF6600', fontWeight:700, fontSize:18, margin:'8px 0 2px', fontFamily: "'Orbitron', sans-serif" }}>
                 {day.high}°
               </p>
-              <p style={{ color:'#6B7280', fontSize:12, margin:'0 0 8px' }}>{day.low}°</p>
-              <div style={{ background: day.rain_chance > 50 ? '#1E3A5F' : '#1A2E1A',
-                            borderRadius:6, padding:'3px 0' }}>
-                <p style={{ color: day.rain_chance > 50 ? '#60A5FA' : '#9CA3AF',
-                             fontSize:11, margin:0 }}>
+              <p style={{ color:'#666680', fontSize:12, margin:'0 0 8px', fontFamily: "'Share Tech Mono', monospace" }}>{day.low}°</p>
+              <div style={{ background: day.rain_chance > 50 ? '#00FFFF22' : '#0A0A0F',
+                            borderRadius:2, padding:'3px 0', border: `1px solid ${day.rain_chance > 50 ? '#00FFFF' : '#FF660033'}` }}>
+                <p style={{ color: day.rain_chance > 50 ? '#00FFFF' : '#666680',
+                             fontSize:10, margin:0, fontFamily: "'Share Tech Mono', monospace" }}>
                   💧{day.rain_chance}%
                 </p>
               </div>
@@ -246,61 +259,60 @@ export default function WeatherPage() {
       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:20 }}>
 
         {/* Farming Alerts */}
-        <div style={{ background:'#162116', border:'1px solid #2D4A2D',
-                      borderRadius:16, padding:20 }}>
-          <p style={{ color:'#fff', fontWeight:700, fontSize:16, margin:'0 0 14px' }}>
-            🚨 Farming Alerts
+        <div className="nge-card" data-label="// NOTIFICATIONS" style={{ padding:20 }}>
+          <p style={{ color:'#FF6600', fontWeight:700, fontSize:16, margin:'0 0 14px', fontFamily: "'Orbitron', sans-serif", letterSpacing: 3 }}>
+            ⚠ SYSTEM ALERTS
           </p>
           <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
             {data?.alerts?.map((alert, i) => {
               const colors = alertColors[alert.type] || alertColors.info
               return (
                 <div key={i} style={{ background:colors.bg, border:`1px solid ${colors.border}`,
-                                       borderRadius:10, padding:'12px 14px',
+                                       borderRadius:2, padding:'12px 14px',
                                        borderLeft:`4px solid ${colors.border}` }}>
-                  <p style={{ color:colors.text, fontWeight:700, fontSize:14, margin:'0 0 3px' }}>
-                    {alert.icon} {alert.title}
+                  <p style={{ color:colors.text, fontWeight:700, fontSize:13, margin:'0 0 3px', fontFamily: "'Share Tech Mono', monospace", letterSpacing: 1 }}>
+                    {alert.icon} {alert.title.toUpperCase()}
                   </p>
-                  <p style={{ color:'#9CA3AF', fontSize:12, margin:0 }}>{alert.msg}</p>
+                  <p style={{ color:'#E8E8E8', fontSize:11, margin:0, fontFamily: "'Share Tech Mono', monospace" }}>{alert.msg}</p>
                 </div>
               )
             })}
             {(!data?.alerts || data.alerts.length === 0) && (
-              <div style={{ background:'#0A2D0A', border:'1px solid #22C55E',
-                            borderRadius:10, padding:'12px 14px' }}>
-                <p style={{ color:'#22C55E', fontWeight:700, margin:'0 0 3px' }}>
-                  ✅ All Clear
+              <div style={{ background:'#0A1A0A', border:'1px solid #00FF41',
+                            borderRadius:2, padding:'12px 14px', borderLeft: '4px solid #00FF41' }}>
+                <p style={{ color:'#00FF41', fontWeight:700, margin:'0 0 3px', fontFamily: "'Share Tech Mono', monospace", letterSpacing: 1 }}>
+                  ✅ ALL CLEAR
                 </p>
-                <p style={{ color:'#9CA3AF', fontSize:12, margin:0 }}>
-                  No major weather risks today.
+                <p style={{ color:'#E8E8E8', fontSize:11, margin:0, fontFamily: "'Share Tech Mono', monospace" }}>
+                  NO IMMINENT THREATS DETECTED.
                 </p>
               </div>
             )}
           </div>
 
           {/* Sowing Recommendation */}
-          <div style={{ marginTop:16, background:'#0F1A0F', borderRadius:10,
-                        padding:'14px 16px', border:`1px solid ${sowing?.color}` }}>
+          <div style={{ marginTop:24, background:'#0A0A0F', borderRadius:2,
+                        padding:'14px 16px', border:`1px solid ${sowing?.color==='#22C55E'? '#00FF41' : '#FFD700'}` }}>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-              <p style={{ color:'#fff', fontWeight:700, margin:'0 0 4px' }}>
-                🌱 Sowing Conditions
+              <p style={{ color:'#E8E8E8', fontWeight:700, margin:'0 0 4px', fontFamily: "'Share Tech Mono', monospace", fontSize: 13, letterSpacing: 1 }}>
+                // SOWING CONDITIONS
               </p>
-              <span style={{ background:sowing?.color, color:'#000',
-                             padding:'3px 12px', borderRadius:20,
-                             fontSize:12, fontWeight:700 }}>
-                {sowing?.label}
+              <span style={{ background:`${sowing?.color==='#22C55E'? '#00FF41' : '#FFD700'}22`, color:sowing?.color==='#22C55E'? '#00FF41' : '#FFD700',
+                             padding:'3px 12px', borderRadius:2, border: `1px solid ${sowing?.color==='#22C55E'? '#00FF41' : '#FFD700'}`,
+                             fontSize:10, fontWeight:700, fontFamily: "'Orbitron', sans-serif", letterSpacing: 2 }}>
+                {sowing?.label?.toUpperCase() || 'OPTIMAL'}
               </span>
             </div>
-            <p style={{ color:'#9CA3AF', fontSize:13, margin:'6px 0 8px' }}>
-              {sowing?.message}
+            <p style={{ color:'#9CA3AF', fontSize:11, margin:'8px 0 10px', fontFamily: "'Share Tech Mono', monospace" }}>
+              {sowing?.message?.toUpperCase() || 'PROCEED WITH CAUTION'}
             </p>
             {sowing?.crops?.length > 0 && (
               <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
                 {sowing.crops.map(crop => (
-                  <span key={crop} style={{ background:'#162116', color:'#22C55E',
-                                            padding:'3px 10px', borderRadius:6,
-                                            fontSize:12, border:'1px solid #2D4A2D' }}>
-                    {crop}
+                  <span key={crop} style={{ background:'#1A0A00', color:'#FF6600',
+                                            padding:'3px 10px', borderRadius:2,
+                                            fontSize:10, border:'1px solid #FF660088', fontFamily: "'Share Tech Mono', monospace" }}>
+                    {crop.toUpperCase()}
                   </span>
                 ))}
               </div>
@@ -309,36 +321,33 @@ export default function WeatherPage() {
         </div>
 
         {/* Monthly Rainfall Chart */}
-        <div style={{ background:'#162116', border:'1px solid #2D4A2D',
-                      borderRadius:16, padding:20 }}>
-          <p style={{ color:'#fff', fontWeight:700, fontSize:16, margin:'0 0 4px' }}>
-            🌧️ Monthly Rainfall Pattern
+        <div className="nge-card" data-label="// CLIMATE HISTORY" style={{ padding:20 }}>
+          <p style={{ color:'#FF6600', fontWeight:700, fontSize:16, margin:'0 0 4px', fontFamily: "'Orbitron', sans-serif", letterSpacing: 3 }}>
+            MONTHLY RAINFALL PATTERN
           </p>
-          <p style={{ color:'#6B7280', fontSize:13, margin:'0 0 16px' }}>
-            Historical average for {data?.city}
+          <p style={{ color:'#666680', fontSize:11, margin:'0 0 16px', fontFamily: "'Share Tech Mono', monospace" }}>
+            // HISTORICAL AVERAGE FOR {data?.city.toUpperCase()}
           </p>
           <div style={{ height:280 }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data?.monthly_rainfall}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#2D4A2D" vertical={false} />
-                <XAxis dataKey="month" tick={{ fill:'#9CA3AF', fontSize:11 }}
+                <CartesianGrid strokeDasharray="3 3" stroke="#FF660033" vertical={false} />
+                <XAxis dataKey="month" tick={{ fill:'#666680', fontSize:10, fontFamily: "'Share Tech Mono', monospace" }}
                        axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill:'#9CA3AF', fontSize:11 }}
+                <YAxis tick={{ fill:'#666680', fontSize:10, fontFamily: "'Share Tech Mono', monospace" }}
                        axisLine={false} tickLine={false}
                        tickFormatter={v => `${v}mm`} />
-                <Tooltip content={<RainfallTooltip />} />
-                <Bar dataKey="rainfall" radius={[4,4,0,0]}>
+                <Tooltip content={<NgeTooltip />} cursor={{fill: '#FF660011'}} />
+                <Bar dataKey="rainfall" radius={[2,2,0,0]} barSize={24}>
                   {data?.monthly_rainfall?.map((entry, i) => (
-                    <Cell key={i}
-                      fill={entry.rainfall > 100 ? '#3B82F6' :
-                            entry.rainfall > 50  ? '#60A5FA' : '#93C5FD'} />
+                    <Cell key={i} fill="#FF6600" />
                   ))}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
-          <p style={{ color:'#6B7280', fontSize:12, textAlign:'center', margin:'8px 0 0' }}>
-            Blue intensity = rainfall amount · Peak = monsoon season
+          <p style={{ color:'#FF660088', fontSize:10, textAlign:'center', margin:'12px 0 0', fontFamily: "'Share Tech Mono', monospace" }}>
+            // PEAK PRECIPITATION INDICATES MONSOON VECTOR
           </p>
         </div>
 

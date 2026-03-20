@@ -15,9 +15,9 @@ export default function App() {
   return (
     <ThemeProvider>
       <BrowserRouter>
-        <div className="flex h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300 font-body overflow-hidden text-gray-900 dark:text-gray-100">
+        <div className="flex h-screen hex-bg overflow-hidden text-[#E8E8E8]" style={{ background: '#0A0A0F' }}>
           <Sidebar />
-          <main className="flex-1 overflow-y-auto w-full lg:ml-0 ml-20 bg-gray-50/50 dark:bg-gray-900/50 transition-colors duration-300">
+          <main className="flex-1 overflow-y-auto w-full lg:ml-0 ml-20" style={{ background: '#0A0A0F' }}>
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/crop" element={<CropRecommendation />} />

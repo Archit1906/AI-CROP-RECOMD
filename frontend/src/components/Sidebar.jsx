@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -8,100 +8,191 @@ import {
   Cloud,
   TrendingUp,
   MessageSquare,
-  FileText,
-  Menu,
-  X,
-  Languages,
-  Moon,
-  Sun
+  FileText
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 
 const Sidebar = () => {
   const { t, i18n } = useTranslation();
   const { isDarkMode, toggleDarkMode } = useTheme();
-  const [isExpanded, setIsExpanded] = useState(false); // Can be toggled for mobile
-
-  const changeLanguage = (lng) => {
-    i18n.changeLanguage(lng);
-    localStorage.setItem('lang', lng);
-  };
 
   const navItems = [
-    { to: '/', icon: <LayoutDashboard size={20} />, label: t('nav.dashboard') },
-    { to: '/crop', icon: <Sprout size={20} />, label: t('nav.crop') },
-    { to: '/disease', icon: <Bug size={20} />, label: t('nav.disease') },
-    { to: '/weather', icon: <Cloud size={20} />, label: t('nav.weather') },
-    { to: '/market', icon: <TrendingUp size={20} />, label: t('nav.market') },
-    { to: '/chat', icon: <MessageSquare size={20} />, label: t('nav.chatbot') },
-    { to: '/schemes', icon: <FileText size={20} />, label: t('nav.schemes') },
+    { path: '/', icon: LayoutDashboard, label: t('nav.dashboard') },
+    { path: '/crop', icon: Sprout, label: t('nav.crop') },
+    { path: '/disease', icon: Bug, label: t('nav.disease') },
+    { path: '/weather', icon: Cloud, label: t('nav.weather') },
+    { path: '/market', icon: TrendingUp, label: t('nav.market') },
+    { path: '/chat', icon: MessageSquare, label: t('nav.chatbot') },
+    { path: '/schemes', icon: FileText, label: t('nav.schemes') },
   ];
 
   return (
-    <div className={`bg-white dark:bg-[#0F1A0F] shadow-xl h-full flex flex-col transition-all duration-200 ${isExpanded ? 'w-64' : 'w-20 lg:w-64'} fixed lg:relative z-50 border-r border-gray-100 dark:border-[#2D4A2D]`}>
-      <div className="flex items-center justify-between p-4 bg-farm-green dark:bg-transparent text-white transition-colors duration-200">
-        <div className={`flex items-center space-x-2 font-display text-2xl ${!isExpanded && 'lg:flex hidden'}`}>
-          <span>🌾</span>
-          <span className="font-bold text-white">Amrit</span>
-          <span className="font-bold text-[#22C55E]">Krishi</span>
+    <aside style={{
+      width: 240,
+      minHeight: '100vh',
+      background: '#0D0D1A',
+      borderRight: '1px solid #FF6600',
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'space-between',
+      padding: '0 0 24px',
+      position: 'relative',
+      overflow: 'hidden'
+    }}>
+
+      {/* Hex background */}
+      <div className="hex-bg" style={{ position:'absolute', inset:0, opacity:0.3 }} />
+
+      {/* NERV Logo Header */}
+      <div style={{ position: 'relative', zIndex: 10 }}>
+        <div style={{
+          padding: '20px 16px',
+          borderBottom: '1px solid #FF660044',
+          background: 'linear-gradient(180deg, #1A0A00 0%, transparent 100%)'
+        }}>
+          {/* NERV-style logo */}
+          <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:8 }}>
+            <div style={{
+              width: 36, height: 36,
+              background: '#FF6600',
+              clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center'
+            }}>
+              <span style={{ fontSize:16, color: '#0A0A0F' }}>🌾</span>
+            </div>
+            <div>
+              <p style={{
+                fontFamily: "'Orbitron', sans-serif",
+                fontSize: 14, fontWeight: 900,
+                color: '#FF6600', margin: 0,
+                letterSpacing: 2,
+                textShadow: '0 0 10px #FF660088'
+              }}>
+                AMRITKRISHI
+              </p>
+              <p style={{
+                fontFamily: "'Share Tech Mono', monospace",
+                fontSize: 9, color: '#666680', margin: 0, letterSpacing: 2
+              }}>
+                MAGI AGRICULTURAL SYSTEM
+              </p>
+            </div>
+          </div>
+
+          {/* System status bar */}
+          <div style={{
+            background: '#0A0A0F', border: '1px solid #FF660044',
+            borderRadius: 2, padding: '4px 8px',
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+          }}>
+            <span style={{ fontFamily:"'Share Tech Mono'", fontSize:9,
+                           color:'#00FF41', letterSpacing:1 }}>
+              ● SYSTEM ONLINE
+            </span>
+            <span style={{ fontFamily:"'Share Tech Mono'", fontSize:9, color:'#666680' }}>
+              v2.0.0
+            </span>
+          </div>
         </div>
-        <div className="lg:hidden flex items-center justify-center w-full">
-           <button onClick={() => setIsExpanded(!isExpanded)} className="p-1 hover:bg-farm-light rounded">
-             {isExpanded ? <X size={24} /> : <Menu size={24} />}
-           </button>
-        </div>
+
+        {/* Nav section label */}
+        <p style={{ fontFamily:"'Share Tech Mono'", fontSize:9, color:'#FF660088',
+                    letterSpacing:3, padding:'12px 16px 4px', margin:0 }}>
+          // NAVIGATION SYSTEMS
+        </p>
+
+        {/* Nav items */}
+        <nav style={{ padding:'0 8px' }}>
+          {navItems.map(item => (
+            <NavLink key={item.path} to={item.path}
+              style={({ isActive }) => ({
+                display: 'flex', alignItems: 'center', gap: 10,
+                padding: '10px 12px', marginBottom: 2,
+                borderRadius: 2, textDecoration: 'none',
+                fontFamily: "'Rajdhani', sans-serif",
+                fontSize: 13, fontWeight: 600, letterSpacing: 2,
+                textTransform: 'uppercase',
+                transition: 'all 0.15s',
+                background: isActive ? '#FF660022' : 'transparent',
+                color: isActive ? '#FF6600' : '#666680',
+                borderLeft: isActive ? '2px solid #FF6600' : '2px solid transparent',
+                boxShadow: isActive ? 'inset 0 0 20px #FF660011' : 'none'
+              })}>
+              {({ isActive }) => (
+                <>
+                  <item.icon size={15} />
+                  {item.label}
+                  {/* Active indicator */}
+                  {isActive && (
+                    <span style={{ marginLeft:'auto', fontFamily:"'Share Tech Mono'",
+                                   fontSize:8, color:'#FF6600' }}>
+                      ◄
+                    </span>
+                  )}
+                </>
+              )}
+            </NavLink>
+          ))}
+        </nav>
       </div>
 
-      <nav className="flex-1 mt-4 space-y-2 px-2 overflow-y-auto">
-        {navItems.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            className={({ isActive }) =>
-              `flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-                isActive ? 'bg-green-500/20 text-green-400 border border-green-500/30 font-bold' : 'text-gray-400 hover:bg-[#1E2E1E] hover:text-white border border-transparent'
-              }`
-            }
-            onClick={() => setIsExpanded(false)} // Close on mobile navigation
-          >
-            <span className="flex-shrink-0">{item.icon}</span>
-            <span className={`whitespace-nowrap ${!isExpanded && 'lg:block hidden'}`}>{item.label}</span>
-          </NavLink>
-        ))}
-      </nav>
+      {/* Bottom section */}
+      <div style={{ padding:'0 12px', position: 'relative', zIndex: 10 }}>
+        {/* Divider */}
+        <div style={{ borderTop:'1px solid #FF660033', marginBottom:12 }} />
 
-      <div className="p-4 border-t border-gray-100 dark:border-[#2D4A2D] transition-colors duration-200">
-        
-        {/* Dark Mode Toggle */}
-        <button 
-          onClick={toggleDarkMode}
-          className={`w-full flex items-center justify-center lg:justify-start space-x-3 p-3 rounded-xl mb-4 transition-colors duration-200 bg-gray-50 hover:bg-gray-100 dark:bg-[#162116] dark:hover:bg-[#1E2E1E] text-gray-600 dark:text-gray-400`}
-        >
-          {isDarkMode ? <Sun size={20} className="text-[#FBBF24]" /> : <Moon size={20} />}
-          <span className={`font-semibold ${!isExpanded && 'lg:block hidden'}`}>
-            {isDarkMode ? 'Light Mode' : 'Dark Mode'}
-          </span>
+        {/* Dark mode toggle */}
+        <button onClick={toggleDarkMode}
+          style={{
+            width:'100%', padding:'8px 12px', marginBottom:8,
+            background: '#0A0A0F', border:'1px solid #FF660044',
+            borderRadius:2, color:'#666680', cursor:'pointer',
+            fontFamily:"'Share Tech Mono'", fontSize:10,
+            letterSpacing:2, textAlign:'left',
+            display:'flex', justifyContent:'space-between',
+            alignItems: 'center'
+          }}>
+          <span>// DISPLAY MODE</span>
+          <span style={{ color:'#FF6600' }}>{isDarkMode ? 'DARK' : 'LIGHT'}</span>
         </button>
 
-        <div className={`bg-gray-50 dark:bg-[#162116] p-2 rounded-xl transition-colors duration-200 ${!isExpanded && 'lg:block hidden'}`}>
-          <div className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400 mb-2 font-semibold">
-            <Languages size={16} />
-            <span className={`${!isExpanded && 'lg:block hidden'}`}>Language</span>
-          </div>
-          <div className={`flex flex-col space-y-1 ${!isExpanded && 'lg:block hidden'}`}>
-            <button onClick={() => changeLanguage('en')} className={`text-left text-sm px-3 py-2 rounded-xl transition-all duration-200 ${i18n.language === 'en' ? 'bg-green-500 text-black font-bold' : 'text-gray-400 hover:bg-[#1E2E1E] hover:text-white'}`}>English</button>
-            <button onClick={() => changeLanguage('ta')} className={`text-left text-sm px-3 py-2 rounded-xl transition-all duration-200 ${i18n.language === 'ta' ? 'bg-green-500 text-black font-bold' : 'text-gray-400 hover:bg-[#1E2E1E] hover:text-white'}`}>தமிழ்</button>
-            <button onClick={() => changeLanguage('hi')} className={`text-left text-sm px-3 py-2 rounded-xl transition-all duration-200 ${i18n.language === 'hi' ? 'bg-green-500 text-black font-bold' : 'text-gray-400 hover:bg-[#1E2E1E] hover:text-white'}`}>हिंदी</button>
-          </div>
-          {/* Condensed lang toggle */}
-          <div className={`lg:hidden flex flex-col items-center space-y-2 py-2 ${isExpanded ? 'hidden' : 'flex'}`}>
-            <button onClick={() => changeLanguage('en')} className={`text-xs px-2 py-1 rounded-full ${i18n.language === 'en' ? 'bg-green-500 text-black font-bold' : 'text-gray-400'}`}>EN</button>
-            <button onClick={() => changeLanguage('ta')} className={`text-xs px-2 py-1 rounded-full ${i18n.language === 'ta' ? 'bg-green-500 text-black font-bold' : 'text-gray-400'}`}>த</button>
-            <button onClick={() => changeLanguage('hi')} className={`text-xs px-2 py-1 rounded-full ${i18n.language === 'hi' ? 'bg-green-500 text-black font-bold' : 'text-gray-400'}`}>हि</button>
+        {/* Language selector */}
+        <div style={{ background:'#0A0A0F', border:'1px solid #FF660044',
+                      borderRadius:2, padding:'8px 12px' }}>
+          <p style={{ fontFamily:"'Share Tech Mono'", fontSize:9, color:'#FF660088',
+                      margin:'0 0 8px', letterSpacing:2 }}>
+            // LANGUAGE PROTOCOL
+          </p>
+          <div style={{ display:'flex', gap:6 }}>
+            {[
+              { code:'en', label:'ENG' },
+              { code:'ta', label:'தமிழ்' },
+              { code:'hi', label:'हिंदी' }
+            ].map(lang => (
+              <button key={lang.code}
+                onClick={() => { i18n.changeLanguage(lang.code); localStorage.setItem('lang', lang.code) }}
+                style={{
+                  flex:1, padding:'4px 2px', border:'1px solid',
+                  borderColor: i18n.language===lang.code ? '#FF6600' : '#FF660033',
+                  background: i18n.language===lang.code ? '#FF660022' : 'transparent',
+                  color: i18n.language===lang.code ? '#FF6600' : '#666680',
+                  fontFamily:"'Share Tech Mono'", fontSize:10,
+                  cursor:'pointer', borderRadius:2,
+                  transition:'all 0.15s'
+                }}>
+                {lang.label}
+              </button>
+            ))}
           </div>
         </div>
+
+        {/* NERV footer stamp */}
+        <p style={{ fontFamily:"'Share Tech Mono'", fontSize:8, color:'#FF660033',
+                    textAlign:'center', margin:'12px 0 0', letterSpacing:2 }}>
+          NERV AGRI DIVISION // CLASSIFIED
+        </p>
       </div>
-    </div>
+    </aside>
   );
 };
 

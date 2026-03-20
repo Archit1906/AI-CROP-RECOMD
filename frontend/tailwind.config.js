@@ -8,24 +8,22 @@ export default {
   theme: {
     extend: {
       colors: {
-        farm: {
-          green: '#22C55E', // updated brand green
-          light: '#4CAF50',
-          gold: '#FBBF24', // updated brand gold
-          soil: '#795548',
-          sky: '#0288D1',
-        },
-        dashboard: {
-          deep: '#0A0F0A',
-          sidebar: '#0F1A0F',
-          card: '#162116',
-          cardHover: '#1E2E1E',
-          border: '#2D4A2D',
+        nge: {
+          black:  '#0A0A0F',
+          navy:   '#0D0D1A',
+          dark:   '#12121F',
+          orange: '#FF6600',
+          cyan:   '#00FFFF',
+          red:    '#FF0033',
+          yellow: '#FFD700',
+          green:  '#00FF41',
+          gray:   '#666680',
         }
       },
       fontFamily: {
-        display: ['Poppins', 'sans-serif'],
-        body: ['Nunito', 'sans-serif'],
+        display: ['Orbitron', 'sans-serif'],
+        body: ['Rajdhani', 'sans-serif'],
+        mono: ['Share Tech Mono', 'monospace'],
       }
     },
   },

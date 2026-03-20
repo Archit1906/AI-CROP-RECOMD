@@ -25,12 +25,12 @@ const WELCOME_MESSAGES = {
 function TypingIndicator() {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 16px',
-                  background: '#1A2E1A', borderRadius: '18px 18px 18px 4px',
+                  background: '#0A0A0F', border: '1px solid #FF660044', borderRadius: '4px',
                   width: 'fit-content', maxWidth: 80 }}>
       {[0,1,2].map(i => (
         <div key={i} style={{
-          width: 8, height: 8, borderRadius: '50%', background: '#22C55E',
-          animation: 'bounce 1.2s ease infinite',
+          width: 8, height: 8, borderRadius: '2px', background: '#FF6600',
+          animation: 'pulse-nge 1.2s ease infinite',
           animationDelay: `${i * 0.2}s`
         }} />
       ))}
@@ -45,43 +45,42 @@ function Message({ msg }) {
       display: 'flex',
       justifyContent: isUser ? 'flex-end' : 'flex-start',
       marginBottom: 12,
-      alignItems: 'flex-end',
+      alignItems: 'flex-start',
       gap: 8
     }}>
       {/* AI Avatar */}
       {!isUser && (
         <div style={{
-          width: 32, height: 32, borderRadius: '50%',
-          background: 'linear-gradient(135deg, #166534, #22C55E)',
+          width: 32, height: 32, borderRadius: '2px',
+          background: '#00FF4122', border: '1px solid #00FF41',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: 16, flexShrink: 0
-        }}>🌾</div>
+        }}>🤖</div>
       )}
 
-      <div style={{ maxWidth: '72%' }}>
+      <div style={{ maxWidth: '85%' }}>
         {/* Bubble */}
         <div style={{
           padding: '12px 16px',
-          borderRadius: isUser
-            ? '18px 18px 4px 18px'
-            : '18px 18px 18px 4px',
-          background: isUser
-            ? 'linear-gradient(135deg, #15803D, #22C55E)'
-            : '#1A2E1A',
-          border: isUser ? 'none' : '1px solid #2D4A2D',
-          color: '#fff',
-          fontSize: 14,
+          borderRadius: '2px',
+          background: isUser ? '#1A0500' : '#0A0A0F',
+          border: `1px solid ${isUser ? '#FF6600' : '#00FF4144'}`,
+          color: isUser ? '#FF6600' : '#00FF41',
+          fontFamily: "'Share Tech Mono', monospace",
+          fontSize: 13,
           lineHeight: 1.6,
           whiteSpace: 'pre-wrap',
-          wordBreak: 'break-word'
+          wordBreak: 'break-word',
+          boxShadow: isUser ? '0 0 10px #FF660022' : 'inset 0 0 10px #00FF4111'
         }}>
           {msg.content}
         </div>
 
         {/* Timestamp */}
         <p style={{
-          color: '#4B5563', fontSize: 11, margin: '4px 6px 0',
-          textAlign: isUser ? 'right' : 'left'
+          color: '#666680', fontSize: 10, margin: '4px 6px 0',
+          textAlign: isUser ? 'right' : 'left',
+          fontFamily: "'Share Tech Mono', monospace"
         }}>
           {msg.time}
         </p>
@@ -90,11 +89,11 @@ function Message({ msg }) {
       {/* User Avatar */}
       {isUser && (
         <div style={{
-          width: 32, height: 32, borderRadius: '50%',
-          background: '#374151',
+          width: 32, height: 32, borderRadius: '2px',
+          background: '#FF660022', border: '1px solid #FF6600',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: 16, flexShrink: 0
-        }}>👨‍🌾</div>
+        }}>👤</div>
       )}
     </div>
   )
@@ -157,7 +156,7 @@ export default function Chatbot() {
     } catch {
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: '⚠️ Could not connect to AI. Make sure backend is running: uvicorn main:app --reload',
+        content: '⚠️ WARNING: MAGI UPLINK FAILED. CHECK SYSTEM CONNECTION.',
         time: new Date().toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' })
       }])
     } finally {
@@ -176,22 +175,15 @@ export default function Chatbot() {
   const currentLang = LANGUAGES.find(l => l.code === language)
 
   return (
-    <div style={{
+    <div className="hex-bg" style={{
       height: '100vh', display: 'flex', flexDirection: 'column',
-      background: '#0A0F0A', position: 'relative'
+      background: '#0A0A0F', position: 'relative'
     }}>
-
-      {/* Subtle farm pattern background */}
-      <div style={{
-        position: 'absolute', inset: 0, opacity: 0.03, pointerEvents: 'none',
-        backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%2322C55E' fill-opacity='1'%3E%3Cpath d='M30 10 L35 25 L30 20 L25 25 Z'/%3E%3Ccircle cx='30' cy='30' r='3'/%3E%3C/g%3E%3C/svg%3E")`,
-        backgroundSize: '60px 60px'
-      }} />
 
       {/* Header */}
       <div style={{
-        background: 'linear-gradient(135deg, #0F2A0F, #162116)',
-        borderBottom: '1px solid #2D4A2D',
+        background: 'linear-gradient(135deg, #1A0A00, #0D0D1A)',
+        borderBottom: '1px solid #FF6600',
         padding: '14px 20px',
         display: 'flex', alignItems: 'center',
         justifyContent: 'space-between',
@@ -199,21 +191,22 @@ export default function Chatbot() {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{
-            width: 44, height: 44, borderRadius: '50%',
-            background: 'linear-gradient(135deg, #166534, #22C55E)',
+            width: 44, height: 44, borderRadius: '2px',
+            background: '#FF660022',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 22, border: '2px solid #22C55E'
-          }}>🌾</div>
+            fontSize: 22, border: '1px solid #FF6600',
+            boxShadow: '0 0 10px #FF660044'
+          }}>🤖</div>
           <div>
-            <p style={{ color: '#fff', fontWeight: 700, fontSize: 16, margin: 0 }}>
-              AmritKrishi Assistant
+            <p style={{ color: '#FF6600', fontWeight: 900, fontSize: 18, margin: 0, fontFamily: "'Orbitron', sans-serif", letterSpacing: 2, textShadow: '0 0 10px #FF660088' }}>
+              MAGI QUERY INTERFACE
             </p>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <div style={{ width: 8, height: 8, borderRadius: '50%',
-                            background: '#22C55E',
-                            boxShadow: '0 0 6px #22C55E',
-                            animation: 'pulse 2s infinite' }} />
-              <p style={{ color: '#22C55E', fontSize: 12, margin: 0 }}>Online • AI Powered</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
+              <div style={{ width: 8, height: 8, borderRadius: '2px',
+                            background: '#00FF41',
+                            boxShadow: '0 0 6px #00FF41',
+                            animation: 'flicker 3s infinite' }} />
+              <p style={{ color: '#00FF41', fontSize: 10, margin: 0, fontFamily: "'Share Tech Mono', monospace", letterSpacing: 1 }}>SYSTEM: ONLINE • CONNECTION: SECURE</p>
             </div>
           </div>
         </div>
@@ -222,9 +215,9 @@ export default function Chatbot() {
         <div style={{ position: 'relative' }}>
           <button onClick={() => setShowLangMenu(!showLangMenu)}
             style={{
-              background: '#0F1A0F', border: '1px solid #2D4A2D',
-              borderRadius: 8, color: '#fff', padding: '8px 14px',
-              cursor: 'pointer', fontSize: 14, fontWeight: 600,
+              background: '#0A0A0F', border: '1px solid #FF660066',
+              borderRadius: 2, color: '#E8E8E8', padding: '8px 12px',
+              cursor: 'pointer', fontSize: 12, fontFamily: "'Share Tech Mono', monospace",
               display: 'flex', alignItems: 'center', gap: 6
             }}>
             {currentLang.label} ▾
@@ -233,8 +226,8 @@ export default function Chatbot() {
           {showLangMenu && (
             <div style={{
               position: 'absolute', top: '110%', right: 0,
-              background: '#162116', border: '1px solid #2D4A2D',
-              borderRadius: 10, overflow: 'hidden', zIndex: 100,
+              background: '#0D0D1A', border: '1px solid #FF6600',
+              borderRadius: 2, overflow: 'hidden', zIndex: 100,
               minWidth: 140
             }}>
               {LANGUAGES.map(lang => (
@@ -242,10 +235,10 @@ export default function Chatbot() {
                   onClick={() => { setLanguage(lang.code); setShowLangMenu(false) }}
                   style={{
                     display: 'block', width: '100%', padding: '10px 16px',
-                    background: language === lang.code ? '#1E3A1E' : 'transparent',
-                    border: 'none', color: language === lang.code ? '#22C55E' : '#9CA3AF',
-                    cursor: 'pointer', textAlign: 'left', fontSize: 14,
-                    borderLeft: language === lang.code ? '3px solid #22C55E' : '3px solid transparent'
+                    background: language === lang.code ? '#FF660022' : 'transparent',
+                    border: 'none', color: language === lang.code ? '#FF6600' : '#666680',
+                    cursor: 'pointer', textAlign: 'left', fontSize: 12, fontFamily: "'Share Tech Mono', monospace",
+                    borderLeft: language === lang.code ? '3px solid #FF6600' : '3px solid transparent'
                   }}>
                   {lang.label} — {lang.full}
                 </button>
@@ -265,12 +258,12 @@ export default function Chatbot() {
         ))}
 
         {loading && (
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, marginBottom: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 12 }}>
             <div style={{
-              width: 32, height: 32, borderRadius: '50%',
-              background: 'linear-gradient(135deg, #166534, #22C55E)',
+              width: 32, height: 32, borderRadius: '2px',
+              background: '#00FF4122', border: '1px solid #00FF41',
               display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16
-            }}>🌾</div>
+            }}>🤖</div>
             <TypingIndicator />
           </div>
         )}
@@ -281,8 +274,8 @@ export default function Chatbot() {
       {/* Input Bar Fixed Bottom */}
       <div style={{
         position: 'fixed', bottom: 0, left: 240, right: 0,
-        padding: '16px 24px', background: '#0A0F0A',
-        borderTop: '1px solid #2D4A2D', zIndex: 10
+        padding: '16px 24px', background: '#0D0D1A',
+        borderTop: '1px solid #FF6600', zIndex: 10
       }}>
         {/* Quick Suggestion Chips */}
         {messages.length <= 1 && (
@@ -290,13 +283,14 @@ export default function Chatbot() {
             {QUICK_SUGGESTIONS.map((s, i) => (
               <button key={i} onClick={() => sendMessage(s.text)}
                 style={{
-                  padding: '6px 14px', borderRadius: 20, border: '1px solid #2D4A2D',
-                  background: 'transparent', color: '#9CA3AF', fontSize: 13, cursor: 'pointer',
-                  transition: 'all 0.15s', display: 'flex', alignItems: 'center', gap: 6
+                  padding: '6px 14px', borderRadius: 2, border: '1px solid #FF660066',
+                  background: '#0A0A0F', color: '#E8E8E8', fontSize: 11, cursor: 'pointer',
+                  transition: 'all 0.15s', display: 'flex', alignItems: 'center', gap: 6,
+                  fontFamily: "'Share Tech Mono', monospace"
                 }}
-                onMouseEnter={e => { e.target.style.borderColor = '#22C55E'; e.target.style.color = '#22C55E' }}
-                onMouseLeave={e => { e.target.style.borderColor = '#2D4A2D'; e.target.style.color = '#9CA3AF' }}>
-                {s.icon} {s.text}
+                onMouseEnter={e => { e.target.style.borderColor = '#FF6600'; e.target.style.background = '#FF660022'; e.target.style.color = '#FF6600' }}
+                onMouseLeave={e => { e.target.style.borderColor = '#FF660066'; e.target.style.background = '#0A0A0F'; e.target.style.color = '#E8E8E8' }}>
+                <span style={{color: '#FF6600'}}>// QUERY:</span> {s.text}
               </button>
             ))}
           </div>
@@ -313,48 +307,46 @@ export default function Chatbot() {
             placeholder={
               language === 'ta' ? 'உங்கள் கேள்வியை தட்டச்சு செய்யுங்கள்...' :
               language === 'hi' ? 'अपना सवाल टाइप करें...' :
-              'Ask about crops, diseases, weather, schemes...'
+              'ENTER QUERY / TYPE COMMAND...'
             }
             disabled={loading}
             autoFocus
             style={{
-              flex: 1, background: '#162116', border: '1px solid #2D4A2D',
-              borderRadius: 12, color: '#ffffff', padding: '12px 16px',
-              fontSize: 15, outline: 'none', pointerEvents: 'all', cursor: 'text',
-              caretColor: '#22C55E'
+              flex: 1, background: '#0A0A0F', border: '1px solid #FF660066',
+              borderRadius: 2, color: '#FF6600', padding: '12px 16px',
+              fontSize: 14, outline: 'none', pointerEvents: 'all', cursor: 'text',
+              caretColor: '#FF6600',
+              fontFamily: "'Share Tech Mono', monospace",
+              textTransform: 'uppercase'
             }}
+            onFocus={e => { e.target.style.borderColor = '#FF6600'; e.target.style.boxShadow = '0 0 10px #FF660033'; }}
+            onBlur={e => { e.target.style.borderColor = '#FF660066'; e.target.style.boxShadow = 'none'; }}
           />
           <button
             onClick={() => sendMessage()}
             disabled={!input.trim() || loading}
             style={{
-              width: 48, height: 48, borderRadius: 12, border: 'none',
-              background: input.trim() && !loading ? '#22C55E' : '#2D4A2D',
-              color: input.trim() && !loading ? '#000' : '#4B5563',
-              fontSize: 20, cursor: input.trim() && !loading ? 'pointer' : 'not-allowed',
+              height: 44, borderRadius: 2, border: '1px solid #FF6600',
+              background: input.trim() && !loading ? '#FF660022' : '#0D0D1A',
+              color: input.trim() && !loading ? '#FF6600' : '#666680',
+              fontSize: 12, cursor: input.trim() && !loading ? 'pointer' : 'not-allowed',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              transition: 'all 0.15s', pointerEvents: 'all'
+              transition: 'all 0.15s', pointerEvents: 'all', padding: '0 24px',
+              fontFamily: "'Orbitron', sans-serif", letterSpacing: 2, fontWeight: 700
             }}>
-            {loading ? '⏳' : '➤'}
+            {loading ? 'PROCESSING...' : 'TRANSMIT ▻'}
           </button>
         </div>
-        <p style={{ color: '#374151', fontSize: 11, textAlign: 'center', margin: '8px 0 0' }}>
-          AI can make mistakes. Verify important farming decisions with local experts.
+        <p style={{ color: '#666680', fontSize: 10, textAlign: 'center', margin: '8px 0 0', fontFamily: "'Share Tech Mono', monospace" }}>
+          // NERV MAGI SYSTEM OPERATIONAL — EXERCISE CAUTION WITH AI RECOMMENDATIONS
         </p>
       </div>
 
       <style>{`
-        @keyframes bounce {
-          0%, 60%, 100% { transform: translateY(0); }
-          30% { transform: translateY(-8px); }
+        @keyframes pulse-nge {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.3; transform: scale(0.8); }
         }
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.4; }
-        }
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #2D4A2D; border-radius: 4px; }
       `}</style>
     </div>
   )

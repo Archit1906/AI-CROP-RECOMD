@@ -31,7 +31,7 @@ const DiseaseDetection = () => {
     // Mock API call
     setTimeout(() => {
       setResult({
-        disease: 'Early Blight',
+        disease: 'EARLY BLIGHT',
         isHealthy: false,
         confidence: '92.5%',
         details: {
@@ -47,51 +47,71 @@ const DiseaseDetection = () => {
   };
 
   return (
-    <div className="min-h-screen bg-transparent transition-colors duration-300 p-4 lg:p-8">
+    <div className="min-h-screen hex-bg p-4 lg:p-8" style={{ background: '#0A0A0F' }}>
       <div className="max-w-4xl mx-auto space-y-6">
         
-        <div className="bg-gradient-to-r from-red-600 to-orange-500 dark:from-red-800 dark:to-orange-700 rounded-2xl p-8 text-white shadow-lg relative overflow-hidden transition-colors duration-300">
-          <div className="relative z-10 flex items-center gap-4">
-            <div className="bg-white/20 p-3 rounded-full backdrop-blur-sm">
-              <Camera size={36} />
+        {/* Header Block */}
+        <div style={{
+          background: 'linear-gradient(90deg, #1A0500 0%, transparent 100%)',
+          borderBottom: '1px solid #FF003366',
+          padding: '24px 32px', position: 'relative', overflow: 'hidden'
+        }}>
+          <div className="relative z-10 flex items-center gap-6">
+            <div style={{
+              background: '#FF003322', border: '1px solid #FF0033', padding: '12px', borderRadius: 2,
+              boxShadow: '0 0 15px #FF003344', color: '#FF0033'
+            }}>
+              <Camera size={36} className="flicker" />
             </div>
             <div>
-              <h1 className="text-3xl font-display font-bold">Plant Disease Detection</h1>
-              <p className="text-sm text-red-100 dark:text-red-200 mt-1">Upload a photo of an infected leaf for instant AI diagnosis and treatment.</p>
+              <p style={{ fontFamily: "'Share Tech Mono', monospace", color: '#FF003388', fontSize: 11, letterSpacing: 3, margin: '0 0 4px' }}>
+                // MAGI SENSOR GRID
+              </p>
+              <h1 className="text-3xl font-bold uppercase glitch-text" style={{ fontFamily: "'Orbitron', sans-serif", color: '#FF0033', letterSpacing: 4, textShadow: '0 0 20px #FF003366', margin: 0 }}>
+                BIOLOGICAL THREAT DETECTION
+              </h1>
+              <p style={{ fontFamily: "'Share Tech Mono', monospace", color: '#FF6600', fontSize: 13, marginTop: 8, letterSpacing: 1 }}>
+                UPLOAD VISUAL DATA FOR IMMEDIATE AI DIAGNOSIS
+              </p>
             </div>
           </div>
-          <div className="absolute right-0 top-0 opacity-10 transform translate-x-1/4 -translate-y-1/4">
-            <Leaf size={200} />
+          <div className="absolute right-0 top-0 opacity-10 transform translate-x-1/4 -translate-y-1/4 filter sepia hue-rotate-[-50deg] saturate-200">
+            <Leaf size={200} color="#FF0033" />
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start mt-6">
           
           {/* Upload Section */}
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 space-y-6 flex flex-col h-full transition-colors duration-300">
-            <h3 className="text-lg font-bold text-gray-800 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2 transition-colors duration-300">Image Upload</h3>
+          <div className="nge-card flex flex-col h-full" data-label="// VISUAL DATA INPUT" style={{ padding: '24px' }}>
+            <p style={{ fontFamily: "'Orbitron', sans-serif", color: '#FF6600', fontSize: 16, fontWeight: 700, letterSpacing: 3, margin: '0 0 16px', textShadow: '0 0 10px #FF660044' }}>
+              IMAGE UPLOAD
+            </p>
             
             <div 
               {...getRootProps()} 
-              className={`flex-1 border-2 border-dashed rounded-xl flex items-center justify-center p-6 cursor-pointer min-h-[250px] transition-colors duration-300
-                ${isDragActive ? 'border-farm-green bg-green-50 dark:border-green-500 dark:bg-green-900/20' : 'border-gray-300 dark:border-gray-600 hover:border-farm-green dark:hover:border-farm-light hover:bg-gray-50 dark:hover:bg-gray-700/50'}
-              `}
+              className="flex-1 border border-dashed flex items-center justify-center p-6 cursor-pointer min-h-[250px] transition-all duration-300 nge-hover"
+              style={{
+                borderColor: isDragActive ? '#00FF41' : '#FF660066',
+                background: isDragActive ? '#00FF4111' : '#0D0D1A',
+                borderRadius: 2
+              }}
             >
               <input {...getInputProps()} />
               {preview ? (
                 <div className="relative w-full h-full flex items-center justify-center">
-                  <img src={preview} alt="Plant" className="max-h-64 object-contain rounded-lg" />
-                  <div className="absolute inset-0 bg-black/50 opacity-0 hover:opacity-100 flex items-center justify-center rounded-lg transition-opacity duration-300">
-                    <p className="text-white font-bold flex items-center gap-2">
-                       <Upload size={20} /> Click to change image
+                  <img src={preview} alt="Plant" className="max-h-64 object-contain" style={{ border: '1px solid #FF660044', borderRadius: 2 }} />
+                  <div className="absolute inset-0 bg-black/70 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300" style={{ borderRadius: 2 }}>
+                    <p style={{ fontFamily: "'Share Tech Mono', monospace", color: '#FF6600', fontWeight: 700, fontSize: 13, display: 'flex', alignItems: 'center', gap: 8 }}>
+                       <Upload size={18} /> CLICK TO OVERRIDE IMAGE
                     </p>
                   </div>
                 </div>
               ) : (
-                <div className="text-center text-gray-500 dark:text-gray-400 transition-colors duration-300">
-                  <Upload size={48} className="mx-auto mb-4 text-gray-300 dark:text-gray-500 transition-colors duration-300" />
-                  <p className="font-semibold text-gray-600 dark:text-gray-300 transition-colors duration-300">Drag & drop a leaf image here</p>
-                  <p className="text-sm mt-1">or click to select file</p>
+                <div className="text-center" style={{ fontFamily: "'Share Tech Mono', monospace" }}>
+                  <Upload size={48} className="mx-auto mb-4" color={isDragActive ? '#00FF41' : '#FF660066'} />
+                  <p style={{ fontWeight: 700, color: isDragActive ? '#00FF41' : '#FF6600', fontSize: 14 }}>DROP VISUAL DATA HERE</p>
+                  <p style={{ fontSize: 11, color: '#666680', marginTop: 4 }}>OR CLICK TO BROWSE LOCAL ARCHIVE</p>
                 </div>
               )}
             </div>
@@ -99,14 +119,21 @@ const DiseaseDetection = () => {
             <button 
               onClick={handleAnalyze}
               disabled={!file || loading} 
-              className={`w-full font-bold py-3 px-4 rounded-xl transition duration-300 shadow-sm flex justify-center items-center gap-2
-                ${!file ? 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed' : 'bg-farm-green dark:bg-green-700 hover:bg-green-800 dark:hover:bg-green-600 text-white'}
-              `}
+              className="w-full font-bold py-4 px-4 mt-6 uppercase transition-all duration-300 shadow-sm flex justify-center items-center gap-2 border"
+              style={{
+                background: (!file || loading) ? '#0A0A0F' : '#FF660022',
+                borderColor: (!file || loading) ? '#FF660044' : '#FF6600',
+                color: (!file || loading) ? '#FF660066' : '#FF6600',
+                cursor: (!file || loading) ? 'not-allowed' : 'pointer',
+                fontFamily: "'Orbitron', sans-serif", letterSpacing: 3, borderRadius: 2
+              }}
+              onMouseEnter={e => { if(file && !loading) { e.target.style.background = '#FF660044'; e.target.style.boxShadow = '0 0 20px #FF660066'; } }}
+              onMouseLeave={e => { if(file && !loading) { e.target.style.background = '#FF660022'; e.target.style.boxShadow = 'none'; } }}
             >
               {loading ? (
-                 <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span>
+                <span style={{ fontFamily: "'Share Tech Mono', monospace", color: '#FF6600', textShadow: '0 0 10px #FF6600' }} className="flicker">PROCESSING SCANS...</span>
               ) : (
-                <><Bug size={20} /> Analyze Disease</>
+                <><Bug size={18} /> INITIATE SCAN ▻</>
               )}
             </button>
           </div>
@@ -114,47 +141,86 @@ const DiseaseDetection = () => {
           {/* Result Section */}
           <div className="h-full">
             {result ? (
-              <div className={`p-8 rounded-2xl shadow-lg border-2 animate-in fade-in slide-in-from-bottom-4 transition-colors duration-300 bg-white dark:bg-gray-800
-                ${result.isHealthy ? 'border-farm-green dark:border-farm-light' : 'border-red-500 dark:border-red-600'}
-              `}>
-                <div className="flex items-center gap-4 mb-6">
-                  <div className={`p-4 rounded-full transition-colors duration-300 ${result.isHealthy ? 'bg-green-100 dark:bg-green-900/40 text-farm-green dark:text-farm-light' : 'bg-red-100 dark:bg-red-900/40 text-red-500 dark:text-red-400'}`}>
-                    {result.isHealthy ? <CheckCircle size={36} /> : <AlertCircle size={36} />}
+              <div className="nge-card animate-in fade-in fill-mode-forwards" data-label="// DIAGNOSIS RESULT" style={{
+                padding: '32px 24px',
+                borderColor: result.isHealthy ? '#00FF41' : '#FF0033',
+                background: result.isHealthy ? '#00FF410a' : '#FF00330a',
+                boxShadow: `0 0 20px ${result.isHealthy ? '#00FF4122' : '#FF003322'}`
+              }}>
+                <div className="flex items-center gap-6 mb-8 border-b pb-6" style={{ borderColor: result.isHealthy ? '#00FF4144' : '#FF003344' }}>
+                  <div style={{
+                    padding: '16px', borderRadius: 2,
+                    background: result.isHealthy ? '#00FF4122' : '#FF003322',
+                    color: result.isHealthy ? '#00FF41' : '#FF0033',
+                    border: `1px solid ${result.isHealthy ? '#00FF41' : '#FF0033'}`,
+                    boxShadow: `0 0 15px ${result.isHealthy ? '#00FF4166' : '#FF003366'}`
+                  }}>
+                    {result.isHealthy ? <CheckCircle size={40} /> : <AlertCircle size={40} className="flicker" />}
                   </div>
                   <div>
-                    <p className="text-gray-500 dark:text-gray-400 font-medium text-sm transition-colors duration-300">Diagnosis Result</p>
-                    <h2 className={`text-2xl font-display font-bold transition-colors duration-300 ${result.isHealthy ? 'text-farm-green dark:text-farm-light' : 'text-red-600 dark:text-red-400'}`}>
+                    <p style={{ fontFamily: "'Share Tech Mono', monospace", fontSize: 11, color: result.isHealthy ? '#00FF4188' : '#FF003388', letterSpacing: 2, margin: '0 0 4px' }}>
+                      // THREAT LEVEL
+                    </p>
+                    <h2 className="text-3xl font-bold uppercase glitch-text" style={{
+                      fontFamily: "'Orbitron', sans-serif",
+                      color: result.isHealthy ? '#00FF41' : '#FF0033',
+                      textShadow: `0 0 15px ${result.isHealthy ? '#00FF4188' : '#FF003388'}`,
+                      margin: 0, letterSpacing: 2
+                    }}>
                       {result.disease}
                     </h2>
-                    <p className="text-xs font-bold text-gray-400 dark:text-gray-500 mt-1 transition-colors duration-300">{result.confidence} Confidence</p>
+                    <p style={{ fontFamily: "'Share Tech Mono', monospace", fontSize: 12, color: '#00FFFF', marginTop: 6, letterSpacing: 1 }}>
+                      CONFIDENCE: {result.confidence}
+                    </p>
                   </div>
                 </div>
 
                 {!result.isHealthy && (
                   <div className="space-y-4">
-                    <div className="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-xl border border-orange-100 dark:border-orange-800/40 transition-colors duration-300">
-                      <p className="text-sm text-orange-800 dark:text-orange-400 font-bold mb-1 flex items-center gap-1"><Bug size={16} /> Cause</p>
-                      <p className="text-gray-700 dark:text-gray-300 text-sm transition-colors duration-300">{result.details.cause}</p>
+                    {/* Cause */}
+                    <div style={{ background: '#1A0A00', padding: '16px', border: '1px solid #FF660066', borderRadius: 2, borderLeft: '4px solid #FF6600' }}>
+                      <p style={{ fontFamily: "'Share Tech Mono', monospace", color: '#FF6600', fontSize: 12, fontWeight: 700, margin: '0 0 6px', letterSpacing: 1, display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <Bug size={14} /> CAUSE IDENTIFIED
+                      </p>
+                      <p style={{ fontFamily: "'Share Tech Mono', monospace", color: '#E8E8E8', fontSize: 13, margin: 0 }}>
+                        {result.details.cause.toUpperCase()}
+                      </p>
                     </div>
-                    <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-xl border border-green-100 dark:border-green-800/40 transition-colors duration-300">
-                      <p className="text-sm text-farm-green dark:text-farm-light font-bold mb-1 flex items-center gap-1"><Droplets size={16} /> Recommended Treatment</p>
-                      <p className="text-gray-700 dark:text-gray-300 text-sm transition-colors duration-300">{result.details.cure}</p>
-                      <div className="mt-3 pt-3 border-t border-green-200 dark:border-green-800/50 transition-colors duration-300">
-                        <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Chemical Control</p>
-                        <p className="text-farm-green dark:text-farm-light font-semibold transition-colors duration-300">{result.details.pesticide}</p>
+
+                    {/* Treatment */}
+                    <div style={{ background: '#0A1A0A', padding: '16px', border: '1px solid #00FF4166', borderRadius: 2, borderLeft: '4px solid #00FF41' }}>
+                      <p style={{ fontFamily: "'Share Tech Mono', monospace", color: '#00FF41', fontSize: 12, fontWeight: 700, margin: '0 0 6px', letterSpacing: 1, display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <Droplets size={14} /> RECOMMENDED TREATMENT
+                      </p>
+                      <p style={{ fontFamily: "'Share Tech Mono', monospace", color: '#E8E8E8', fontSize: 13, margin: 0, lineHeight: 1.6 }}>
+                        {result.details.cure.toUpperCase()}
+                      </p>
+                      <div className="mt-4 pt-4 border-t border-[#00FF4133]">
+                        <p style={{ fontFamily: "'Share Tech Mono', monospace", color: '#00FF4188', fontSize: 10, letterSpacing: 2, margin: '0 0 4px' }}>CHEMICAL PROTOCOL</p>
+                        <p style={{ fontFamily: "'Rajdhani', sans-serif", color: '#00FFFF', fontSize: 15, fontWeight: 600, margin: 0, letterSpacing: 1 }}>
+                          {result.details.pesticide.toUpperCase()}
+                        </p>
                       </div>
                     </div>
-                    <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800/40 transition-colors duration-300">
-                      <p className="text-sm text-blue-800 dark:text-blue-400 font-bold mb-1 flex items-center gap-1"><Leaf size={16} /> Prevention</p>
-                      <p className="text-gray-700 dark:text-gray-300 text-sm transition-colors duration-300">{result.details.prevention}</p>
+
+                    {/* Prevention */}
+                    <div style={{ background: '#0D0D1A', padding: '16px', border: '1px solid #00FFFF66', borderRadius: 2, borderLeft: '4px solid #00FFFF' }}>
+                      <p style={{ fontFamily: "'Share Tech Mono', monospace", color: '#00FFFF', fontSize: 12, fontWeight: 700, margin: '0 0 6px', letterSpacing: 1, display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <Leaf size={14} /> PREVENTION PROTOCOLS
+                      </p>
+                      <p style={{ fontFamily: "'Share Tech Mono', monospace", color: '#E8E8E8', fontSize: 13, margin: 0, lineHeight: 1.6 }}>
+                        {result.details.prevention.toUpperCase()}
+                      </p>
                     </div>
                   </div>
                 )}
               </div>
             ) : (
-              <div className="bg-white/50 dark:bg-gray-800/50 border border-dashed border-gray-300 dark:border-gray-600 rounded-2xl h-full flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 p-12 min-h-[400px] transition-colors duration-300">
-                <Bug size={64} className="mb-4 text-gray-300 dark:text-gray-600 transition-colors duration-300" />
-                <p className="text-center">Upload an image of your crop's leaf and hit "Analyze" to detect diseases instantly.</p>
+              <div className="nge-card border border-dashed flex flex-col items-center justify-center p-12 min-h-[440px]" data-label="// AWAITING DATA" style={{ background: '#0A0A0F', borderColor: '#FF660044' }}>
+                <Bug size={64} color="#FF660022" className="mb-6" />
+                <p style={{ fontFamily: "'Share Tech Mono', monospace", color: '#FF660088', textAlign: 'center', fontSize: 13, letterSpacing: 1, lineHeight: 1.6 }}>
+                  SYSTEM IDLE. <br/>UPLOAD LEAF IMAGERY AND INITIATE SCAN FOR PATHOGEN ANALYSIS.
+                </p>
               </div>
             )}
           </div>

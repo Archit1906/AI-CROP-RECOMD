@@ -38,7 +38,7 @@ export default function MarketPrices() {
         setSelectedCrop(res.data.prices[0])
       }
     } catch (err) {
-      setError("Could not load market prices. Check backend connection.")
+      setError("COMMUNICATION ERROR: COULD NOT LOAD MARKET PRICES. VERIFY BACKEND UPLINK.")
     } finally {
       setLoading(false)
     }
@@ -51,13 +51,13 @@ export default function MarketPrices() {
 
   const chartData = selectedCrop?.[timeRange] || []
 
-  const CustomTooltip = ({ active, payload, label }) => {
+  const NgeTooltip = ({ active, payload, label }) => {
     if (active && payload?.length) {
       return (
-        <div style={{ background: '#162116', border: '1px solid #2D4A2D',
-                      borderRadius: 8, padding: '10px 14px' }}>
-          <p style={{ color: '#9CA3AF', fontSize: 12, margin: 0 }}>{label}</p>
-          <p style={{ color: '#22C55E', fontWeight: 700, fontSize: 16, margin: '4px 0 0' }}>
+        <div style={{ background: '#0D0D1A', border: '1px solid #FF6600',
+                      borderRadius: 2, padding: '10px 14px', fontFamily: "'Share Tech Mono', monospace" }}>
+          <p style={{ color: '#FF660088', fontSize: 10, margin: '0 0 4px', letterSpacing: 2 }}>// T={label}</p>
+          <p style={{ color: '#00FF41', fontWeight: 700, fontSize: 16, margin: 0, letterSpacing: 1 }}>
             ₹{payload[0]?.value?.toLocaleString()}
           </p>
         </div>
@@ -67,113 +67,125 @@ export default function MarketPrices() {
   }
 
   if (loading) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  height: '60vh', color: '#22C55E', fontSize: 18 }}>
-      Loading market prices...
+    <div className="hex-bg" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                  height: '100vh', background: '#0A0A0F', color: '#FF6600', fontSize: 16, fontFamily: "'Share Tech Mono', monospace" }}>
+      <div className="flicker" style={{ letterSpacing: 3 }}>// CONNECTING TO MAGI MARKET INTEL...</div>
     </div>
   )
 
   if (error) return (
-    <div style={{ margin: 32, padding: 20, background: '#2D0A0A',
-                  border: '1px solid #EF4444', borderRadius: 12, color: '#EF4444' }}>
-      {error} — Run: <code>uvicorn main:app --reload</code>
+    <div className="hex-bg" style={{ minHeight: '100vh', padding: 32, background: '#0A0A0F' }}>
+      <div style={{ padding: 20, background: '#1A0500', border: '1px solid #FF0033', borderRadius: 2, color: '#FF0033', fontFamily: "'Share Tech Mono', monospace" }}>
+        {error}
+      </div>
     </div>
   )
 
   return (
-    <div style={{ padding: 24, background: '#0A0F0A', minHeight: '100vh' }}>
+    <div className="hex-bg" style={{ padding: 24, background: '#0A0A0F', minHeight: '100vh', fontFamily: "'Rajdhani', sans-serif" }}>
 
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between',
                     alignItems: 'flex-start', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <h1 style={{ fontSize: 28, fontWeight: 700, color: '#22C55E', margin: 0 }}>
-            Market Prices
+          <p style={{ fontFamily:"'Share Tech Mono'", fontSize:10, color:'#FF660088', letterSpacing:3, margin:'0 0 4px' }}>
+            // COMMERCE AND TRADE DATA
+          </p>
+          <h1 className="glitch-text" style={{ fontSize: 28, fontWeight: 900, color: '#FF6600', margin: 0, fontFamily: "'Orbitron', sans-serif", letterSpacing: 3, textTransform: 'uppercase', textShadow: '0 0 20px #FF660066' }}>
+            MARKET INTELLIGENCE
           </h1>
-          <p style={{ color: '#6B7280', fontSize: 14, margin: '4px 0 0' }}>
-            Last updated: {data?.last_updated}
+          <p style={{ color: '#666680', fontSize: 11, margin: '4px 0 0', fontFamily: "'Share Tech Mono', monospace", letterSpacing: 1 }}>
+            LAST ARCHIVE SYNC: {data?.last_updated}
           </p>
         </div>
 
         {/* Filters */}
         <div style={{ display: 'flex', gap: 12 }}>
           <select value={state} onChange={e => { setState(e.target.value); setDistrict("All Districts") }}
-            style={{ background: '#162116', border: '1px solid #2D4A2D', borderRadius: 8,
-                     color: '#fff', padding: '8px 12px', fontSize: 14 }}>
-            {STATES.map(s => <option key={s} value={s}>{s}</option>)}
+            style={{ background: '#0A0A0F', border: '1px solid #FF660066', borderRadius: 2,
+                     color: '#E8E8E8', padding: '8px 12px', fontSize: 12, fontFamily: "'Share Tech Mono', monospace", outline: 'none', cursor: 'pointer' }}
+            onFocus={e => { e.target.style.borderColor = '#FF6600'; e.target.style.boxShadow = '0 0 10px #FF660033'; }}
+            onBlur={e => { e.target.style.borderColor = '#FF660066'; e.target.style.boxShadow = 'none'; }}
+          >
+            {STATES.map(s => <option key={s} value={s}>{s.toUpperCase()}</option>)}
           </select>
 
           <select value={district} onChange={e => setDistrict(e.target.value)}
-            style={{ background: '#162116', border: '1px solid #2D4A2D', borderRadius: 8,
-                     color: '#fff', padding: '8px 12px', fontSize: 14 }}>
-            {(DISTRICTS[state] || ["All Districts"]).map(d => <option key={d} value={d}>{d}</option>)}
+            style={{ background: '#0A0A0F', border: '1px solid #FF660066', borderRadius: 2,
+                     color: '#E8E8E8', padding: '8px 12px', fontSize: 12, fontFamily: "'Share Tech Mono', monospace", outline: 'none', cursor: 'pointer' }}
+            onFocus={e => { e.target.style.borderColor = '#FF6600'; e.target.style.boxShadow = '0 0 10px #FF660033'; }}
+            onBlur={e => { e.target.style.borderColor = '#FF660066'; e.target.style.boxShadow = 'none'; }}
+          >
+            {(DISTRICTS[state] || ["All Districts"]).map(d => <option key={d} value={d}>{d.toUpperCase()}</option>)}
           </select>
         </div>
       </div>
 
       {/* Best Time to Sell Banner */}
       {data?.best_sell && (
-        <div style={{ background: 'linear-gradient(135deg, #78350F, #92400E)',
-                      border: '1px solid #D97706', borderRadius: 12,
-                      padding: '16px 20px', marginBottom: 24,
+        <div style={{ background: 'linear-gradient(135deg, #1A0A00, #0D0D1A)',
+                      border: '1px solid #FFD700', borderLeft: '4px solid #FFD700', borderRadius: 2,
+                      padding: '16px 20px', marginBottom: 24, paddingLeft: '16px',
                       display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: 20 }}>⏰</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <span style={{ fontSize: 24, filter: 'sepia(1) hue-rotate(-50deg) saturate(3)' }}>⏰</span>
             <div>
-              <p style={{ color: '#FCD34D', fontWeight: 700, margin: 0 }}>Best Time to Sell</p>
-              <p style={{ color: '#FDE68A', fontSize: 14, margin: '2px 0 0' }}>
-                {data.best_sell_msg}
+              <p style={{ color: '#FFD700', fontWeight: 700, margin: 0, fontFamily: "'Orbitron', sans-serif", letterSpacing: 2 }}>SELL RECOMMENDATION</p>
+              <p style={{ color: '#E8E8E8', fontSize: 12, margin: '4px 0 0', fontFamily: "'Share Tech Mono', monospace" }}>
+                {data.best_sell_msg.toUpperCase()}
               </p>
             </div>
           </div>
-          <button onClick={() => navigate('/market/analytics')} style={{ background: '#D97706', border: 'none',
-                   borderRadius: 8, color: '#000', fontWeight: 700,
-                   padding: '8px 16px', cursor: 'pointer' }}>
-            View Analytics
+          <button onClick={() => navigate('/market/analytics')} 
+            className="nge-hover"
+            style={{ background: '#FFD70022', border: '1px solid #FFD700',
+                   borderRadius: 2, color: '#FFD700', fontWeight: 700,
+                   padding: '10px 16px', cursor: 'pointer', fontFamily: "'Orbitron', sans-serif", letterSpacing: 2, fontSize: 11, transition: 'all 0.2s' }}>
+            VIEW ANALYTICS ▻
           </button>
         </div>
       )}
 
       {/* Main Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 20 }}>
 
         {/* Crop List */}
-        <div style={{ background: '#162116', border: '1px solid #2D4A2D',
-                      borderRadius: 12, overflow: 'hidden' }}>
-          <div style={{ padding: '14px 16px', borderBottom: '1px solid #2D4A2D' }}>
-            <p style={{ color: '#fff', fontWeight: 600, margin: 0 }}>Current Mandi Prices</p>
-            <p style={{ color: '#6B7280', fontSize: 12, margin: '2px 0 0' }}>
-              Click any crop to see trend
+        <div className="nge-card" data-label="// LOCAL MANDI COMMODITIES" style={{ overflow: 'hidden', padding: 0 }}>
+          <div style={{ padding: '16px', borderBottom: '1px solid #FF660044', background: '#0D0D1A' }}>
+            <p style={{ color: '#FF6600', fontWeight: 700, margin: 0, fontFamily: "'Orbitron', sans-serif", letterSpacing: 2 }}>CURRENT MANDI PRICES</p>
+            <p style={{ color: '#666680', fontSize: 11, margin: '4px 0 0', fontFamily: "'Share Tech Mono', monospace" }}>
+              // SELECT COMMODITY TO VIEW TACTICAL TRENDS
             </p>
           </div>
 
           <div style={{ overflowY: 'auto', maxHeight: 480 }}>
             {data?.prices?.map((crop, i) => (
               <div key={i} onClick={() => handleCropClick(crop)}
+                className="nge-hover"
                 style={{
-                  padding: '14px 16px',
+                  padding: '16px',
                   cursor: 'pointer',
-                  borderBottom: '1px solid #1E2E1E',
-                  background: selectedCrop?.crop === crop.crop ? '#1E3A1E' : 'transparent',
-                  borderLeft: selectedCrop?.crop === crop.crop ? '3px solid #22C55E' : '3px solid transparent',
+                  borderBottom: '1px solid #FF660022',
+                  background: selectedCrop?.crop === crop.crop ? '#FF660022' : 'transparent',
+                  borderLeft: selectedCrop?.crop === crop.crop ? '4px solid #FF6600' : '4px solid transparent',
                   transition: 'all 0.15s',
                   display: 'flex', justifyContent: 'space-between', alignItems: 'center'
                 }}>
                 <div>
-                  <p style={{ color: '#fff', fontWeight: 600, margin: 0, fontSize: 15 }}>
-                    {crop.emoji} {crop.crop}
+                  <p style={{ color: selectedCrop?.crop === crop.crop ? '#FF6600' : '#E8E8E8', fontWeight: 700, margin: 0, fontSize: 15, fontFamily: "'Orbitron', sans-serif", letterSpacing: 1, textTransform: 'uppercase' }}>
+                    <span style={{filter: 'grayscale(1) sepia(1)'}}>{crop.emoji}</span> {crop.crop}
                   </p>
-                  <p style={{ color: '#6B7280', fontSize: 12, margin: '2px 0 0' }}>
-                    per {crop.unit}
+                  <p style={{ color: '#666680', fontSize: 11, margin: '2px 0 0', fontFamily: "'Share Tech Mono', monospace" }}>
+                    / {crop.unit.toUpperCase()}
                   </p>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <p style={{ color: '#fff', fontWeight: 700, margin: 0, fontSize: 16 }}>
+                  <p style={{ color: selectedCrop?.crop === crop.crop ? '#FF6600' : '#E8E8E8', fontWeight: 700, margin: 0, fontSize: 16, fontFamily: "'Orbitron', sans-serif" }}>
                     ₹{crop.price.toLocaleString()}
                   </p>
-                  <p style={{ margin: '2px 0 0', fontSize: 13, fontWeight: 600,
-                               color: crop.change > 0 ? '#22C55E' : crop.change < 0 ? '#EF4444' : '#6B7280' }}>
-                    {crop.change > 0 ? '↑' : crop.change < 0 ? '↓' : '→'} {Math.abs(crop.change)}%
+                  <p style={{ margin: '4px 0 0', fontSize: 11, fontWeight: 700, fontFamily: "'Share Tech Mono', monospace", letterSpacing: 1,
+                               color: crop.change > 0 ? '#00FF41' : crop.change < 0 ? '#FF0033' : '#666680' }}>
+                    {crop.change > 0 ? '▲' : crop.change < 0 ? '▼' : '►'} {Math.abs(crop.change)}%
                   </p>
                 </div>
               </div>
@@ -182,23 +194,22 @@ export default function MarketPrices() {
         </div>
 
         {/* Chart Panel */}
-        <div style={{ background: '#162116', border: '1px solid #2D4A2D',
-                      borderRadius: 12, padding: 20 }}>
+        <div className="nge-card" data-label="// COMMODITY VECTOR ANALYSIS" style={{ padding: 24 }}>
 
           {selectedCrop ? (
             <>
               {/* Chart Header */}
               <div style={{ display: 'flex', justifyContent: 'space-between',
-                            alignItems: 'flex-start', marginBottom: 20 }}>
+                            alignItems: 'flex-start', marginBottom: 24, flexDirection: 'column', gap: 16 }}>
                 <div>
-                  <p style={{ color: '#fff', fontWeight: 700, fontSize: 18, margin: 0 }}>
-                    Price Trend: {selectedCrop.emoji} {selectedCrop.crop}
+                  <p style={{ color: '#FF6600', fontWeight: 700, fontSize: 16, margin: 0, fontFamily: "'Orbitron', sans-serif", letterSpacing: 2, textTransform: 'uppercase' }}>
+                    PRICE VECTOR: {selectedCrop.crop}
                   </p>
-                  <p style={{ color: '#6B7280', fontSize: 13, margin: '4px 0 0' }}>
-                    ₹{selectedCrop.price.toLocaleString()} / {selectedCrop.unit} •
-                    <span style={{ color: selectedCrop.change > 0 ? '#22C55E' : '#EF4444',
+                  <p style={{ color: '#00FFFF', fontSize: 12, margin: '6px 0 0', fontFamily: "'Share Tech Mono', monospace" }}>
+                    ₹{selectedCrop.price.toLocaleString()} / {selectedCrop.unit.toUpperCase()} •
+                    <span style={{ color: selectedCrop.change > 0 ? '#00FF41' : '#FF0033',
                                    marginLeft: 6 }}>
-                      {selectedCrop.change > 0 ? '↑' : '↓'} {Math.abs(selectedCrop.change)}% today
+                      {selectedCrop.change > 0 ? '▲' : '▼'} {Math.abs(selectedCrop.change)}% 24H DELTA
                     </span>
                   </p>
                 </div>
@@ -212,10 +223,11 @@ export default function MarketPrices() {
                   ].map(btn => (
                     <button key={btn.key} onClick={() => setTimeRange(btn.key)}
                       style={{
-                        padding: '5px 14px', borderRadius: 6, fontSize: 13,
-                        fontWeight: 600, cursor: 'pointer', border: 'none',
-                        background: timeRange === btn.key ? '#22C55E' : '#0F1A0F',
-                        color: timeRange === btn.key ? '#000' : '#9CA3AF',
+                        padding: '6px 16px', borderRadius: 2, fontSize: 11,
+                        fontWeight: 700, cursor: 'pointer', fontFamily: "'Share Tech Mono', monospace",
+                        background: timeRange === btn.key ? '#FF6600' : '#0D0D1A',
+                        color: timeRange === btn.key ? '#0A0A0F' : '#666680',
+                        border: `1px solid ${timeRange === btn.key ? '#FF6600' : '#FF660044'}`,
                         transition: 'all 0.15s'
                       }}>
                       {btn.label}
@@ -228,43 +240,43 @@ export default function MarketPrices() {
               <div style={{ height: 280 }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#2D4A2D" />
-                    <XAxis dataKey="month" tick={{ fill: '#9CA3AF', fontSize: 11 }}
+                    <CartesianGrid strokeDasharray="3 3" stroke="#FF660033" vertical={false} />
+                    <XAxis dataKey="month" tick={{ fill: '#666680', fontSize: 10, fontFamily: "'Share Tech Mono', monospace" }}
                            axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fill: '#9CA3AF', fontSize: 11 }}
+                    <YAxis tick={{ fill: '#666680', fontSize: 10, fontFamily: "'Share Tech Mono', monospace" }}
                            axisLine={false} tickLine={false}
-                           tickFormatter={v => `₹${v.toLocaleString()}`} />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Line type="monotone" dataKey="price" stroke="#22C55E"
-                          strokeWidth={2.5} dot={{ fill: '#22C55E', r: 4 }}
-                          activeDot={{ r: 7, fill: '#22C55E' }} />
+                           tickFormatter={v => `₹${v}`} />
+                    <Tooltip content={<NgeTooltip />} cursor={{ stroke: '#FF660022', strokeWidth: 20 }} />
+                    <Line type="monotone" dataKey="price" stroke="#00FF41"
+                          strokeWidth={2} dot={{ fill: '#0A0A0F', stroke: '#00FF41', r: 4, strokeWidth: 2 }}
+                          activeDot={{ r: 6, fill: '#00FF41', stroke: '#0D0D1A', strokeWidth: 2 }} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
 
               {/* Prediction Banner */}
-              <div style={{ marginTop: 16, padding: '12px 16px',
-                            background: '#0F1A0F', borderRadius: 8,
+              <div style={{ marginTop: 24, padding: '16px 20px',
+                            background: '#0D0D1A', borderRadius: 2, border: '1px solid #00FFFF44', borderLeft: '4px solid #00FFFF',
                             display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <p style={{ color: '#9CA3AF', fontSize: 12, margin: 0 }}>
-                    AI Price Prediction (Next Month)
+                  <p style={{ color: '#00FFFF88', fontSize: 10, margin: 0, fontFamily: "'Share Tech Mono', monospace", letterSpacing: 2 }}>
+                    // MAGI PRICE PROJECTION (+30 DAYS)
                   </p>
-                  <p style={{ color: '#FBBF24', fontWeight: 700, fontSize: 18, margin: '4px 0 0' }}>
+                  <p style={{ color: '#00FFFF', fontWeight: 700, fontSize: 20, margin: '6px 0 0', fontFamily: "'Orbitron', sans-serif" }}>
                     ₹{Math.round(selectedCrop.price * 1.05).toLocaleString()}
                   </p>
                 </div>
-                <span style={{ background: selectedCrop.change > 3 ? '#14532D' : '#1C1917',
-                               color: selectedCrop.change > 3 ? '#22C55E' : '#9CA3AF',
-                               padding: '6px 14px', borderRadius: 20, fontSize: 13, fontWeight: 600 }}>
-                  {selectedCrop.change > 3 ? '✓ Good time to sell' : 'Hold for better price'}
+                <span style={{ background: selectedCrop.change > 3 ? '#00FF4122' : '#FFD70022',
+                               color: selectedCrop.change > 3 ? '#00FF41' : '#FFD700', border: `1px solid ${selectedCrop.change > 3 ? '#00FF41' : '#FFD700'}`,
+                               padding: '6px 14px', borderRadius: 2, fontSize: 10, fontWeight: 700, fontFamily: "'Share Tech Mono', monospace", letterSpacing: 1 }}>
+                  {selectedCrop.change > 3 ? '✓ OPTIMAL SELL WINDOW' : '⚠ HOLD ASSET'}
                 </span>
               </div>
             </>
           ) : (
-            <div style={{ height: 300, display: 'flex', alignItems: 'center',
-                          justifyContent: 'center', color: '#6B7280' }}>
-              Select a crop to see price trend
+            <div style={{ height: 300, display: 'flex', alignItems: 'center', textAlign: 'center',
+                          justifyContent: 'center', color: '#FF660088', fontFamily: "'Share Tech Mono', monospace", fontSize: 12, letterSpacing: 1 }}>
+              NO COMMODITY SELECTED.<br/>PLEASE SELECT A TARGET FROM THE DIRECTORY.
             </div>
           )}
         </div>
