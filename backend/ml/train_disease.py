@@ -49,9 +49,14 @@ if os.path.exists(DATASET_PATH):
     model = Model(inputs=base.input, outputs=out)
     model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
+    checkpoint_path = "../models/plant_disease_model.h5"
+    if os.path.exists(checkpoint_path):
+        print(f"Loading existing weights from {checkpoint_path}...")
+        model.load_weights(checkpoint_path)
+
     os.makedirs("../models", exist_ok=True)
     checkpoint = tf.keras.callbacks.ModelCheckpoint(
-        "../models/plant_disease_model.h5",
+        checkpoint_path,
         save_best_only=True,
         monitor='val_accuracy',
         verbose=1

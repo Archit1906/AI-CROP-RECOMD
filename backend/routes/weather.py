@@ -181,3 +181,50 @@ async def get_weather(city: str):
         ),
         "last_updated": datetime.now().strftime("%d %b %Y, %I:%M %p")
     }
+
+@router.get("/weather/state/{state_name}")
+async def get_weather_by_state(state_name: str):
+    from data.soil_data import STATE_CAPITALS
+    city = STATE_CAPITALS.get(state_name, state_name)
+
+    if not API_KEY:
+        # Smart mock based on state region
+        REGION_WEATHER = {
+            "coastal":      {"temp":28,"humidity":78,"rainfall":180},
+            "gangetic":     {"temp":26,"humidity":70,"rainfall":120},
+            "northeastern": {"temp":22,"humidity":85,"rainfall":220},
+            "himalayan":    {"temp":12,"humidity":60,"rainfall":150},
+            "central":      {"temp":30,"humidity":55,"rainfall":90},
+            "western":      {"temp":32,"humidity":50,"rainfall":70},
+            "southern":     {"temp":29,"humidity":72,"rainfall":130},
+            "arid":         {"temp":35,"humidity":25,"rainfall":30},
+            "eastern":      {"temp":27,"humidity":75,"rainfall":160},
+        }
+        from data.soil_data import SOIL_DATA
+        soil = SOIL_DATA.get(state_name, {})
+        region = soil.get("region", "central")
+        w = REGION_WEATHER.get(region, REGION_WEATHER["central"])
+        return {
+            "city": city, "state": state_name,
+            "temperature": w["temp"],
+            "humidity":    w["humidity"],
+            "rainfall":    w["rainfall"],
+            "description": "Partly Cloudy",
+            "source": "mock"
+        }
+
+    async with httpx.AsyncClient(timeout=8.0) as client:
+        res = await client.get(
+            "https://api.openweathermap.org/data/2.5/weather",
+            params={"q":city,"appid":API_KEY,"units":"metric"}
+        )
+    data = res.json()
+    return {
+        "city":        city,
+        "state":       state_name,
+        "temperature": round(data["main"]["temp"]),
+        "humidity":    data["main"]["humidity"],
+        "rainfall":    data.get("rain",{}).get("1h", 0) * 30,
+        "description": data["weather"][0]["description"].title(),
+        "source":      "live"
+    }

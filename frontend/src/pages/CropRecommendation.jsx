@@ -1,426 +1,592 @@
-import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
-import api from '../api/axios';
-import { ArrowLeft, Trash2 } from 'lucide-react';
-import DialKnob from '../components/DialKnob';
+import { useState, useCallback } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import IndiaMap from '../components/IndiaMap'
+import { SOIL_DATA } from '../data/soilData'
+import api from '../api/axios'
 
-const PARAMS = [
-  { key:'N',        label:'Nitrogen',    unit:'kg/ha', min:0,   max:140, optimal_min:60,  optimal_max:100, color:'#FF6600', icon:'N' },
-  { key:'P',        label:'Phosphorus',  unit:'kg/ha', min:0,   max:145, optimal_min:30,  optimal_max:60,  color:'#00FFFF', icon:'P' },
-  { key:'K',        label:'Potassium',   unit:'kg/ha', min:0,   max:205, optimal_min:40,  optimal_max:80,  color:'#FFD700', icon:'K' },
-  { key:'temp',     label:'Temperature', unit:'°C',    min:0,   max:50,  optimal_min:20,  optimal_max:35,  color:'#FF0033', icon:'T' },
-  { key:'humidity', label:'Humidity',    unit:'%',     min:0,   max:100, optimal_min:50,  optimal_max:80,  color:'#00FFFF', icon:'H' },
-  { key:'ph',       label:'pH Level',    unit:'pH',    min:0,   max:14,  optimal_min:5.5, optimal_max:7.5, color:'#8B5CF6', icon:'Φ' },
-  { key:'rainfall', label:'Rainfall',    unit:'mm',    min:0,   max:300, optimal_min:100, optimal_max:200, color:'#3B82F6', icon:'R' },
-]
+const CROP_INFO = {
+  rice:        { emoji:'🌾', profit:'₹28,000/acre', season:'Kharif',  water:'High'   },
+  wheat:       { emoji:'🌿', profit:'₹22,000/acre', season:'Rabi',    water:'Medium' },
+  maize:       { emoji:'🌽', profit:'₹18,000/acre', season:'Kharif',  water:'Medium' },
+  cotton:      { emoji:'🌱', profit:'₹35,000/acre', season:'Kharif',  water:'Medium' },
+  sugarcane:   { emoji:'🎋', profit:'₹45,000/acre', season:'Annual',  water:'High'   },
+  jute:        { emoji:'🌿', profit:'₹20,000/acre', season:'Kharif',  water:'High'   },
+  coffee:      { emoji:'☕', profit:'₹75,000/acre', season:'Annual',  water:'High'   },
+  coconut:     { emoji:'🥥', profit:'₹40,000/acre', season:'Annual',  water:'High'   },
+  banana:      { emoji:'🍌', profit:'₹60,000/acre', season:'Annual',  water:'High'   },
+  mango:       { emoji:'🥭', profit:'₹70,000/acre', season:'Annual',  water:'Medium' },
+  chickpea:    { emoji:'🫘', profit:'₹22,000/acre', season:'Rabi',    water:'Low'    },
+  lentil:      { emoji:'🫘', profit:'₹21,000/acre', season:'Rabi',    water:'Low'    },
+  mungbean:    { emoji:'🌿', profit:'₹16,000/acre', season:'Kharif',  water:'Low'    },
+  blackgram:   { emoji:'🫘', profit:'₹17,000/acre', season:'Kharif',  water:'Low'    },
+  pomegranate: { emoji:'🍎', profit:'₹80,000/acre', season:'Annual',  water:'Low'    },
+  grapes:      { emoji:'🍇', profit:'₹90,000/acre', season:'Annual',  water:'Medium' },
+  watermelon:  { emoji:'🍉', profit:'₹30,000/acre', season:'Summer',  water:'Medium' },
+  papaya:      { emoji:'🍈', profit:'₹50,000/acre', season:'Annual',  water:'High'   },
+  orange:      { emoji:'🍊', profit:'₹65,000/acre', season:'Annual',  water:'Medium' },
+}
 
-const mockResult = {
-  recommended_crop: "Rice",
-  confidence: "92%",
-  top3: [
-    { crop: "Rice", emoji: "🌾", confidence: 92 },
-    { crop: "Maize", emoji: "🌽", confidence: 74 },
-    { crop: "Cotton", emoji: "🌿", confidence: 61 }
-  ],
-  details: {
-    avg_profit: "₹28,000/ACRE",
-    water_req: "HIGH",
-    season: "KHARIF",
-    duration: "90-120 DAYS"
-  }
-};
+export default function CropRecommendation() {
+  const [selectedState, setSelectedState] = useState(null)
+  const [weather,       setWeather]       = useState(null)
+  const [soil,          setSoil]          = useState(null)
+  const [result,        setResult]        = useState(null)
+  const [loading,       setLoading]       = useState(false)
+  const [loadPhase,     setLoadPhase]     = useState('')
+  const [history,       setHistory]       = useState([])
+  const [error,         setError]         = useState(null)
 
-const InputPanel = ({ sliders, setSliders, onAnalyze, isAnalyzing, t }) => {
-  return (
-    <div style={{
-      background:'#0D0D1A',
-      border:'1px solid #FF660033',
-      borderRadius:4,
-      padding:'32px 24px',
-      position:'relative'
-    }}>
+  const LOAD_PHASES = [
+    '// LOCATING STATE COORDINATES...',
+    '// FETCHING ATMOSPHERIC DATA...',
+    '// RETRIEVING SOIL COMPOSITION...',
+    '// RUNNING MAGI ANALYSIS...',
+    '// GENERATING RECOMMENDATION...',
+  ]
 
-      {/* Section header */}
-      <div style={{ marginBottom:32, textAlign:'center' }}>
-        <p style={{ fontFamily:"'Share Tech Mono'", fontSize:9,
-                    color:'#FF660066', letterSpacing:4, margin:'0 0 6px' }}>
-          // MAGI SOIL EVALUATION INTERFACE
-        </p>
-        <p style={{ fontFamily:"'Share Tech Mono'", fontSize:10,
-                    color:'#666680', margin:0, letterSpacing:2 }}>
-          DRAG DIALS TO CALIBRATE PARAMETERS
-        </p>
-      </div>
+  const handleStateSelect = useCallback(async (stateName) => {
+    if (!stateName) return
+    setSelectedState(stateName)
+    setLoading(true)
+    setResult(null)
+    setError(null)
+    setWeather(null)
+    setSoil(null)
 
-      {/* Top row — 4 dials */}
-      <div style={{
-        display:'grid',
-        gridTemplateColumns:'repeat(4, 1fr)',
-        gap:24, marginBottom:32,
-        justifyItems:'center'
-      }}>
-        {PARAMS.slice(0, 4).map(p => (
-          <DialKnob key={p.key}
-            label={p.label} unit={p.unit}
-            min={p.min} max={p.max}
-            optimal_min={p.optimal_min}
-            optimal_max={p.optimal_max}
-            value={sliders[p.key]}
-            color={p.color}
-            size={100}
-            onChange={val => setSliders(prev => ({ ...prev, [p.key]: val }))}
-          />
-        ))}
-      </div>
-
-      {/* Bottom row — 3 dials centered */}
-      <div style={{
-        display:'grid',
-        gridTemplateColumns:'repeat(3, 1fr)',
-        gap:24, marginBottom:32,
-        justifyItems:'center',
-        maxWidth:520, margin:'0 auto 32px'
-      }}>
-        {PARAMS.slice(4).map(p => (
-          <DialKnob key={p.key}
-            label={p.label} unit={p.unit}
-            min={p.min} max={p.max}
-            optimal_min={p.optimal_min}
-            optimal_max={p.optimal_max}
-            value={sliders[p.key]}
-            color={p.color}
-            size={100}
-            onChange={val => setSliders(prev => ({ ...prev, [p.key]: val }))}
-          />
-        ))}
-      </div>
-
-      {/* NPK quick summary bar */}
-      <div style={{
-        display:'flex', gap:8, justifyContent:'center',
-        marginBottom:24
-      }}>
-        {[
-          { label:'N', value:sliders.N, color:'#FF6600', max:140 },
-          { label:'P', value:sliders.P, color:'#00FFFF', max:145 },
-          { label:'K', value:sliders.K, color:'#FFD700', max:205 },
-        ].map(npk => (
-          <div key={npk.label} style={{
-            background:'#0A0A0F', border:`1px solid ${npk.color}44`,
-            borderRadius:2, padding:'8px 16px', textAlign:'center', minWidth:80
-          }}>
-            <p style={{ fontFamily:"'Orbitron'", fontSize:18,
-                         fontWeight:900, color:npk.color, margin:'0 0 2px',
-                         textShadow:`0 0 10px ${npk.color}66` }}>
-              {npk.value}
-            </p>
-            <p style={{ fontFamily:"'Share Tech Mono'", fontSize:9,
-                         color:`${npk.color}88`, margin:0, letterSpacing:2 }}>
-              {npk.label}-FACTOR
-            </p>
-            <div style={{ height:3, background:`${npk.color}22`,
-                           borderRadius:1, marginTop:4 }}>
-              <div style={{
-                height:'100%', borderRadius:1,
-                width:`${(npk.value/npk.max)*100}%`,
-                background:npk.color,
-                transition:'width 0.2s'
-              }} />
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Analyze button */}
-      <button onClick={onAnalyze} disabled={isAnalyzing}
-        style={{
-          display:'block', width:'100%',
-          padding:'14px', border:'1px solid #FF6600',
-          background: isAnalyzing ? '#FF660011' : '#FF660022',
-          color:'#FF6600', cursor: isAnalyzing ? 'not-allowed' : 'pointer',
-          fontFamily:"'Orbitron', sans-serif",
-          fontSize:13, fontWeight:700, letterSpacing:4,
-          textTransform:'uppercase', borderRadius:2,
-          transition:'all 0.2s',
-          boxShadow: isAnalyzing ? 'none' : '0 0 20px #FF660033'
-        }}
-        onMouseEnter={e => { if(!isAnalyzing) e.currentTarget.style.background='#FF660044' }}
-        onMouseLeave={e => { if(!isAnalyzing) e.currentTarget.style.background='#FF660022' }}>
-        {isAnalyzing ? '// ANALYZING...' : '// INITIATE MAGI ANALYSIS ►'}
-      </button>
-    </div>
-  )
-};
-
-const ResultPanel = ({ sliders, result, isAnalyzing, t }) => {
-  const navigate = useNavigate();
-
-  // Condition Feedback Chips
-  const conditions = [];
-  if (sliders.ph < 5.5) conditions.push({ type: 'danger', text: 'SOIL ACIDIC — LIME REQ' });
-  if (sliders.ph > 7.5) conditions.push({ type: 'warning', text: 'SOIL ALKALINE' });
-  if (sliders.temp > 40) conditions.push({ type: 'danger', text: 'TEMP CRITICAL — SHADE REQ' });
-  if (sliders.humidity > 85) conditions.push({ type: 'warning', text: 'HIGH HUMIDITY — FUNGAL RISK' });
-  if (conditions.length === 0) conditions.push({ type: 'success', text: 'CONDITIONS OPTIMAL' });
-
-  return (
-    <div className="h-full flex flex-col gap-6">
-      <div className="flex flex-wrap gap-2">
-        {conditions.map((c, i) => (
-          <span key={i} className={`text-[9px] px-2 py-1 border font-semibold flex items-center gap-1 uppercase tracking-[1px]
-            ${c.type === 'danger' ? 'bg-[#1A0500] text-[#FF0033] border-[#FF0033]' : 
-              c.type === 'warning' ? 'bg-[#1A1A00] text-[#FFD700] border-[#FFD700]' : 
-              'bg-[#0A1A0A] text-[#00FF41] border-[#00FF41]'}`}
-            style={{ fontFamily: "'Share Tech Mono', monospace", borderRadius: 2 }}
-          >
-            {c.type === 'danger' ? '⚠' : c.type === 'warning' ? '⚠' : '✅'} {c.text}
-          </span>
-        ))}
-      </div>
-
-      <div className="space-y-4">
-        {result.top3.map((crop, idx) => (
-          <div 
-            key={crop.crop + idx} 
-            className={`bg-[#0A0A0F] p-4 border transition-all duration-500 fill-mode-forwards
-              ${idx === 0 ? 'border-[#00FF41] shadow-[0_0_15px_#00FF4133] scale-100' : 'border-[#FF660044] scale-[0.98] opacity-90'}
-            `}
-            style={{ animation: `slideInRight 0.5s ease-out ${idx * 0.15}s both`, borderRadius: 2 }}
-          >
-            <div className="flex justify-between items-center mb-3">
-              <div className="flex items-center gap-3">
-                <span className="text-3xl filter sepia hue-rotate-[50deg] saturate-200">{crop.emoji}</span>
-                <div>
-                  <h3 className="text-lg font-bold text-white uppercase" style={{ fontFamily: "'Orbitron', sans-serif", color: idx===0 ? '#00FF41' : '#FF6600', letterSpacing: 2 }}>{crop.crop}</h3>
-                  <p className="text-[10px] text-[#00FFFF]" style={{ fontFamily: "'Share Tech Mono', monospace", letterSpacing: 1 }}>{idx === 0 ? 'PRIMARY MATCH' : idx === 1 ? 'SECONDARY OPTION' : 'TERTIARY FALLBACK'}</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p style={{ color: '#666680', fontSize: 9, margin: '0 0 2px', fontFamily: "'Share Tech Mono', monospace", letterSpacing: 2 }}>CONFIDENCE</p>
-                <span className="text-2xl font-black tabular-nums" style={{ color: idx===0 ? '#00FF41' : '#FF6600', fontFamily: "'Orbitron', sans-serif" }}>{crop.confidence}%</span>
-              </div>
-            </div>
-            
-            <div className="h-[4px] bg-[#0D0D1A] overflow-hidden border border-[#FF660033]">
-              <div 
-                className="h-full transition-all duration-1000 ease-out" 
-                style={{ width: isAnalyzing ? '0%' : `${crop.confidence}%`, background: idx===0 ? '#00FF41' : '#FF6600' }}
-              ></div>
-            </div>
-
-            {idx === 0 && !isAnalyzing && (
-              <div className="mt-4 pt-4 border-t border-[#FF660044] animate-fade-in">
-                <div className="grid grid-cols-2 gap-3 mb-4">
-                  <div className="bg-[#0D0D1A] p-3 border border-[#FF660033] text-center" style={{ borderRadius: 2 }}>
-                    <p className="text-[9px] text-[#FF660088] uppercase tracking-[2px] mb-1" style={{ fontFamily: "'Share Tech Mono', monospace" }}>{t('crop_rec.avg_profit') || 'PROFIT PROJECTION'}</p>
-                    <p className="text-sm font-bold text-[#FFD700]" style={{ fontFamily: "'Share Tech Mono', monospace" }}>{result.details.avg_profit}</p>
-                  </div>
-                  <div className="bg-[#0D0D1A] p-3 border border-[#FF660033] text-center" style={{ borderRadius: 2 }}>
-                    <p className="text-[9px] text-[#FF660088] uppercase tracking-[2px] mb-1" style={{ fontFamily: "'Share Tech Mono', monospace" }}>{t('crop_rec.water_need') || 'WATER REQ'}</p>
-                    <p className="text-sm font-bold text-[#00FFFF]" style={{ fontFamily: "'Share Tech Mono', monospace" }}>{result.details.water_req}</p>
-                  </div>
-                  <div className="bg-[#0D0D1A] p-3 border border-[#FF660033] text-center" style={{ borderRadius: 2 }}>
-                    <p className="text-[9px] text-[#FF660088] uppercase tracking-[2px] mb-1" style={{ fontFamily: "'Share Tech Mono', monospace" }}>{t('crop_rec.season') || 'SEASON'}</p>
-                    <p className="text-sm font-bold text-[#00FF41]" style={{ fontFamily: "'Share Tech Mono', monospace" }}>{result.details.season}</p>
-                  </div>
-                  <div className="bg-[#0D0D1A] p-3 border border-[#FF660033] text-center" style={{ borderRadius: 2 }}>
-                    <p className="text-[9px] text-[#FF660088] uppercase tracking-[2px] mb-1" style={{ fontFamily: "'Share Tech Mono', monospace" }}>{t('crop_rec.duration') || 'GROWTH CYCLE'}</p>
-                    <p className="text-sm font-bold text-[#E8E8E8]" style={{ fontFamily: "'Share Tech Mono', monospace" }}>{result.details.duration}</p>
-                  </div>
-                </div>
-                
-                <details className="text-sm text-gray-300 mb-5 group cursor-pointer outline-none">
-                  <summary className="font-semibold text-[#FF6600] outline-none text-[11px] uppercase tracking-[2px]" style={{ fontFamily: "'Share Tech Mono', monospace" }}>
-                    [+] {t('crop_rec.why_crop') || 'VIEW ANALYSIS LOGS'}
-                  </summary>
-                  <ul className="list-none pl-0 mt-3 space-y-2 text-[11px] text-[#00FFFF]">
-                    <li style={{ fontFamily: "'Share Tech Mono', monospace" }}><span className="text-[#FF6600] mr-2">&gt;</span>Optimal nitrogen levels detected for {crop.crop.toUpperCase()}.</li>
-                    <li style={{ fontFamily: "'Share Tech Mono', monospace" }}><span className="text-[#FF6600] mr-2">&gt;</span>Temperature {sliders.temp}°C perfectly matches requirement.</li>
-                    <li style={{ fontFamily: "'Share Tech Mono', monospace" }}><span className="text-[#FF6600] mr-2">&gt;</span>Rainfall supports the required water usage.</li>
-                  </ul>
-                </details>
-
-                <button 
-                  onClick={() => navigate(`/chat?q=How to start farming ${crop.crop} in my current conditions?`)}
-                  className="w-full py-3 bg-[#0D0D1A] hover:bg-[#FF660022] text-[#FF6600] border border-[#FF6600] text-[11px] font-bold transition-all uppercase tracking-[3px]"
-                  style={{ fontFamily: "'Orbitron', sans-serif", borderRadius: 2 }}
-                >
-                  {t('crop_rec.view_guide') || 'REQUEST MAGI PROTOCOL ▻'}
-                </button>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-const CropRecommendation = () => {
-  const { t } = useTranslation();
-  const navigate = useNavigate();
-  
-  const [compareMode, setCompareMode] = useState(false);
-  const [slidersA, setSlidersA] = useState({ N: 80, P: 40, K: 40, temp: 25, humidity: 65, ph: 6.5, rainfall: 120 });
-  const [slidersB, setSlidersB] = useState({ N: 40, P: 60, K: 30, temp: 32, humidity: 55, ph: 7.0, rainfall: 80 });
-  
-  const [liveResultA, setLiveResultA] = useState(mockResult);
-  const [liveResultB, setLiveResultB] = useState(mockResult);
-  
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [history, setHistory] = useState([]);
-
-  useEffect(() => {
-    const saved = localStorage.getItem('cropHistory');
-    if (saved) setHistory(JSON.parse(saved));
-  }, []);
-
-  // Debounced Live Preview Effect
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      const variance = (slidersA.temp % 5) - 2; 
-      const res = JSON.parse(JSON.stringify(mockResult));
-      res.top3[0].confidence = Math.min(99, Math.max(50, 92 + variance));
-      setLiveResultA(res);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [slidersA]);
-
-  useEffect(() => {
-    if(!compareMode) return;
-    const timer = setTimeout(() => {
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [slidersB, compareMode]);
-
-  const handleAnalyze = async () => {
-    setIsAnalyzing(true);
     try {
-      const res = await api.post('/api/predict-crop', {
-        nitrogen: slidersA.N,
-        phosphorus: slidersA.P,
-        potassium: slidersA.K,
-        temperature: slidersA.temp,
-        humidity: slidersA.humidity,
-        ph: slidersA.ph,
-        rainfall: slidersA.rainfall
-      });
-      
-      setLiveResultA(res.data);
-      
-      const newHistory = [{
-        date: new Date().toLocaleTimeString([], { hour12: false }),
-        crop: res.data.top3[0].crop,
-        confidence: res.data.top3[0].confidence,
-        sliders: slidersA
-      }, ...history].slice(0, 3);
-      
-      setHistory(newHistory);
-      localStorage.setItem('cropHistory', JSON.stringify(newHistory));
+      // Phase 1 — locate
+      setLoadPhase(LOAD_PHASES[0])
+      await new Promise(r => setTimeout(r, 400))
+
+      // Phase 2 — weather
+      setLoadPhase(LOAD_PHASES[1])
+      let weatherData
+      try {
+        const wRes = await api.get(`/api/weather/state/${encodeURIComponent(stateName)}`)
+        weatherData = wRes.data
+      } catch {
+        // Fallback mock weather
+        const soil = SOIL_DATA[stateName] || {}
+        const regionWeather = {
+          coastal:      { temperature:28, humidity:78, rainfall:180 },
+          gangetic:     { temperature:26, humidity:70, rainfall:120 },
+          northeastern: { temperature:22, humidity:85, rainfall:220 },
+          himalayan:    { temperature:12, humidity:60, rainfall:150 },
+          central:      { temperature:30, humidity:55, rainfall:90  },
+          western:      { temperature:32, humidity:50, rainfall:70  },
+          southern:     { temperature:29, humidity:72, rainfall:130 },
+          arid:         { temperature:35, humidity:25, rainfall:30  },
+          eastern:      { temperature:27, humidity:75, rainfall:160 },
+        }
+        weatherData = regionWeather[soil.region] || regionWeather.central
+      }
+      setWeather(weatherData)
+      await new Promise(r => setTimeout(r, 400))
+
+      // Phase 3 — soil
+      setLoadPhase(LOAD_PHASES[2])
+      const soilData = SOIL_DATA[stateName] || {
+        N:80, P:40, K:50, ph:7.0, region:'central'
+      }
+      setSoil(soilData)
+      await new Promise(r => setTimeout(r, 400))
+
+      // Phase 4 — predict
+      setLoadPhase(LOAD_PHASES[3])
+      const predRes = await api.post('/api/predict-crop', {
+        nitrogen:    soilData.N,
+        phosphorus:  soilData.P,
+        potassium:   soilData.K,
+        temperature: weatherData.temperature,
+        humidity:    weatherData.humidity,
+        ph:          soilData.ph,
+        rainfall:    weatherData.rainfall,
+      })
+
+      setLoadPhase(LOAD_PHASES[4])
+      await new Promise(r => setTimeout(r, 300))
+
+      const prediction = predRes.data
+      setResult(prediction)
+
+      // Save to history
+      setHistory(prev => [{
+        state:      stateName,
+        crop:       prediction.recommended_crop,
+        confidence: prediction.confidence,
+        time:       new Date().toLocaleTimeString('en-IN')
+      }, ...prev].slice(0, 5))
+
     } catch (err) {
-      console.error(err);
-      // alert replaced with a silent fail for visual mock
+      setError(`Analysis failed for ${stateName}. Check backend connection.`)
     } finally {
-      setIsAnalyzing(false);
+      setLoading(false)
+      setLoadPhase('')
     }
-  };
+  }, [])
 
-  const deleteHistory = (idx) => {
-    const fresh = history.filter((_, i) => i !== idx);
-    setHistory(fresh);
-    localStorage.setItem('cropHistory', JSON.stringify(fresh));
-  };
-
-  const restoreHistory = (entry) => {
-    setSlidersA(entry.sliders);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  const cropKey  = result?.recommended_crop?.toLowerCase().replace(/\s/g,'')
+  const cropInfo = CROP_INFO[cropKey] || { emoji:'🌱', profit:'N/A', season:'N/A', water:'N/A' }
 
   return (
-    <div className="min-h-screen bg-[#0A0A0F] p-4 lg:p-8 flex flex-col gap-8 transition-colors duration-300 hex-bg">
+    <div style={{ padding:24, background:'#0A0A0F', minHeight:'100vh' }}>
+
+      {/* Header */}
+      <div style={{ marginBottom:20, paddingBottom:16,
+                    borderBottom:'1px solid #FF660022' }}>
+        <p style={{ fontFamily:"'Courier New'", fontSize:9,
+                     color:'#FF660066', letterSpacing:4, margin:'0 0 6px' }}>
+          // MAGI CROP ANALYSIS SYSTEM
+        </p>
+        <h1 style={{ fontFamily:"'Orbitron'", fontSize:24, fontWeight:900,
+                     color:'#FF6600', margin:0, letterSpacing:4,
+                     textShadow:'0 0 20px #FF660066' }}>
+          CROP RECOMMENDATION
+        </h1>
+        <p style={{ fontFamily:"'Courier New'", fontSize:10,
+                     color:'#666680', margin:'4px 0 0', letterSpacing:2 }}>
+          SELECT A STATE ON THE MAP TO BEGIN ANALYSIS
+        </p>
+      </div>
+
+      {/* Main layout */}
+      <div style={{ display:'grid',
+                    gridTemplateColumns: window.innerWidth < 1000 ? '1fr' : '440px 1fr',
+                    gap:20, alignItems:'start' }}>
+
+        {/* LEFT — India Map */}
+        <div style={{ background:'#0D0D1A',
+                      border:'1px solid #FF660033',
+                      borderRadius:4, padding:16 }}>
+
+          <p style={{ fontFamily:"'Courier New'", fontSize:9,
+                       color:'#FF660066', letterSpacing:3, margin:'0 0 12px' }}>
+            // SELECT TARGET STATE
+          </p>
+
+          {/* Map */}
+          <div style={{ display:'flex', justifyContent:'center' }}>
+            <IndiaMap
+              onStateSelect={handleStateSelect}
+              selectedState={selectedState}
+              activeStates={history.map(h => h.state)}
+            />
+          </div>
+
+          {/* Selected state label */}
+          {selectedState && (
+            <div style={{ marginTop:12, padding:'8px 12px',
+                          background:'#FF660011',
+                          border:'1px solid #FF660033',
+                          borderRadius:2, textAlign:'center' }}>
+              <p style={{ fontFamily:"'Courier New'", fontSize:8,
+                           color:'#FF660066', letterSpacing:3, margin:'0 0 2px' }}>
+                // TARGET ACQUIRED
+              </p>
+              <p style={{ fontFamily:"'Orbitron'", fontSize:14,
+                           color:'#FF6600', margin:0, fontWeight:700,
+                           letterSpacing:3 }}>
+                {selectedState.toUpperCase()}
+              </p>
+            </div>
+          )}
+
+          {/* Scan history */}
+          {history.length > 0 && (
+            <div style={{ marginTop:12 }}>
+              <p style={{ fontFamily:"'Courier New'", fontSize:8,
+                           color:'#FF660044', letterSpacing:3, margin:'0 0 6px' }}>
+                // RECENT ANALYSES
+              </p>
+              {history.map((h, i) => (
+                <div key={i}
+                  onClick={() => handleStateSelect(h.state)}
+                  style={{ display:'flex', justifyContent:'space-between',
+                           padding:'5px 8px', marginBottom:3,
+                           background: h.state===selectedState ? '#FF660011' : 'transparent',
+                           border:'1px solid #FF660011',
+                           borderRadius:1, cursor:'pointer',
+                           transition:'all 0.15s' }}
+                  onMouseEnter={e => e.currentTarget.style.borderColor='#FF660033'}
+                  onMouseLeave={e => e.currentTarget.style.borderColor='#FF660011'}>
+                  <span style={{ fontFamily:"'Courier New'", fontSize:9,
+                                  color:'#FF6600' }}>
+                    {h.state}
+                  </span>
+                  <span style={{ fontFamily:"'Courier New'", fontSize:9,
+                                  color:'#666680' }}>
+                    {h.crop} // {h.time}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* RIGHT — Results panel */}
+        <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+
+          {/* Loading state */}
+          <AnimatePresence>
+            {loading && (
+              <motion.div
+                initial={{ opacity:0, y:-10 }}
+                animate={{ opacity:1, y:0 }}
+                exit={{ opacity:0 }}
+                style={{ background:'#0D0D1A',
+                         border:'1px solid #FF660033',
+                         borderRadius:4, padding:20 }}>
+                <p style={{ fontFamily:"'Courier New'", fontSize:9,
+                             color:'#FF660066', letterSpacing:3, margin:'0 0 16px' }}>
+                  // MAGI ANALYSIS IN PROGRESS
+                </p>
+                <div style={{ display:'flex', alignItems:'center', gap:12,
+                              marginBottom:16 }}>
+                  <div style={{ width:32, height:32,
+                                border:'2px solid #FF660033',
+                                borderTop:'2px solid #FF6600',
+                                borderRadius:'50%',
+                                animation:'spin 0.8s linear infinite' }} />
+                  <p style={{ fontFamily:"'Courier New'", fontSize:11,
+                               color:'#FF6600', margin:0, letterSpacing:1 }}>
+                    {loadPhase}
+                  </p>
+                </div>
+                {/* Phase progress dots */}
+                <div style={{ display:'flex', gap:6 }}>
+                  {LOAD_PHASES.map((p, i) => (
+                    <div key={i} style={{
+                      flex:1, height:2, borderRadius:1,
+                      background: loadPhase === p ? '#FF6600' :
+                                  LOAD_PHASES.indexOf(loadPhase) > i
+                                    ? '#FF660044' : '#FF660011',
+                      transition:'all 0.3s'
+                    }} />
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Error */}
+          {error && (
+            <div style={{ background:'#2D0A0A', border:'1px solid #FF0033',
+                          borderRadius:4, padding:16 }}>
+              <p style={{ fontFamily:"'Courier New'", color:'#FF0033',
+                           fontSize:11, margin:0, letterSpacing:1 }}>
+                ⚠ {error}
+              </p>
+            </div>
+          )}
+
+          {/* Empty state */}
+          {!loading && !result && !error && (
+            <motion.div
+              initial={{ opacity:0 }}
+              animate={{ opacity:1 }}
+              style={{ background:'#0D0D1A',
+                       border:'1px solid #FF660022',
+                       borderRadius:4, padding:40,
+                       textAlign:'center' }}>
+              <div style={{ fontSize:48, marginBottom:16, opacity:0.2 }}>🗺️</div>
+              <p style={{ fontFamily:"'Orbitron'", fontSize:14,
+                           color:'#FF660033', letterSpacing:4, margin:'0 0 8px' }}>
+                AWAITING STATE SELECTION
+              </p>
+              <p style={{ fontFamily:"'Courier New'", fontSize:10,
+                           color:'#444', letterSpacing:2, margin:0 }}>
+                CLICK ANY STATE ON THE MAP TO BEGIN
+              </p>
+            </motion.div>
+          )}
+
+          {/* Weather + Soil data cards */}
+          <AnimatePresence>
+            {weather && soil && !loading && (
+              <motion.div
+                initial={{ opacity:0, y:10 }}
+                animate={{ opacity:1, y:0 }}
+                transition={{ duration:0.4 }}>
+
+                {/* Data cards row */}
+                <div style={{ display:'grid',
+                              gridTemplateColumns:'repeat(auto-fit, minmax(180px, 1fr))',
+                              gap:10, marginBottom:12 }}>
+
+                  {/* Weather card */}
+                  <div style={{ background:'#0D0D1A',
+                                border:'1px solid #00FFFF33',
+                                borderTop:'2px solid #00FFFF',
+                                borderRadius:2, padding:'12px' }}>
+                    <p style={{ fontFamily:"'Courier New'", fontSize:8,
+                                 color:'#00FFFF66', letterSpacing:3, margin:'0 0 10px' }}>
+                      // ATMOSPHERIC DATA
+                    </p>
+                    {[
+                      { label:'TEMPERATURE', value:`${weather.temperature}°C`, icon:'🌡️' },
+                      { label:'HUMIDITY',    value:`${weather.humidity}%`,     icon:'💧' },
+                      { label:'RAINFALL',    value:`${weather.rainfall}mm`,    icon:'🌧️' },
+                    ].map(item => (
+                      <div key={item.label} style={{ marginBottom:8 }}>
+                        <p style={{ fontFamily:"'Courier New'", fontSize:7,
+                                     color:'#666680', letterSpacing:2, margin:'0 0 2px' }}>
+                          {item.label}
+                        </p>
+                        <p style={{ fontFamily:"'Orbitron'", fontSize:14,
+                                     fontWeight:700, color:'#00FFFF',
+                                     margin:0, letterSpacing:1 }}>
+                          {item.icon} {item.value}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Soil NPK card */}
+                  <div style={{ background:'#0D0D1A',
+                                border:'1px solid #FF660033',
+                                borderTop:'2px solid #FF6600',
+                                borderRadius:2, padding:'12px' }}>
+                    <p style={{ fontFamily:"'Courier New'", fontSize:8,
+                                 color:'#FF660066', letterSpacing:3, margin:'0 0 10px' }}>
+                      // SOIL COMPOSITION
+                    </p>
+                    {[
+                      { label:'NITROGEN (N)',    value:`${soil.N} kg/ha`,  color:'#FF6600' },
+                      { label:'PHOSPHORUS (P)',  value:`${soil.P} kg/ha`,  color:'#00FFFF' },
+                      { label:'POTASSIUM (K)',   value:`${soil.K} kg/ha`,  color:'#FFD700' },
+                      { label:'pH LEVEL',        value:soil.ph,            color:'#8B5CF6' },
+                    ].map(item => (
+                      <div key={item.label} style={{ marginBottom:6 }}>
+                        <p style={{ fontFamily:"'Courier New'", fontSize:7,
+                                     color:'#666680', letterSpacing:2, margin:'0 0 1px' }}>
+                          {item.label}
+                        </p>
+                        <p style={{ fontFamily:"'Orbitron'", fontSize:12,
+                                     fontWeight:700, color:item.color, margin:0 }}>
+                          {item.value}
+                        </p>
+                        <div style={{ height:2, background:'#FF660011',
+                                       borderRadius:1, marginTop:2 }}>
+                          <div style={{
+                            height:'100%', borderRadius:1,
+                            background:item.color,
+                            width:`${Math.min(100, (parseFloat(item.value)/120)*100)}%`,
+                            transition:'width 0.8s ease'
+                          }} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Region info card */}
+                  <div style={{ background:'#0D0D1A',
+                                border:'1px solid #8B5CF633',
+                                borderTop:'2px solid #8B5CF6',
+                                borderRadius:2, padding:'12px' }}>
+                    <p style={{ fontFamily:"'Courier New'", fontSize:8,
+                                 color:'#8B5CF666', letterSpacing:3, margin:'0 0 10px' }}>
+                      // STATE PROFILE
+                    </p>
+                    <p style={{ fontFamily:"'Orbitron'", fontSize:11,
+                                 fontWeight:700, color:'#FF6600',
+                                 margin:'0 0 6px', letterSpacing:2 }}>
+                      {selectedState?.toUpperCase()}
+                    </p>
+                    <p style={{ fontFamily:"'Courier New'", fontSize:9,
+                                 color:'#8B5CF6', margin:'0 0 12px',
+                                 letterSpacing:2, textTransform:'uppercase' }}>
+                      {soil.region} ZONE
+                    </p>
+                    <div style={{ borderTop:'1px solid #FF660022', paddingTop:8 }}>
+                      {[
+                        { label:'SOIL TYPE',
+                          value: soil.ph > 7.5 ? 'Alkaline' : soil.ph < 6.0 ? 'Acidic' : 'Neutral' },
+                        { label:'FERTILITY',
+                          value: soil.N > 85 ? 'High' : soil.N > 65 ? 'Medium' : 'Low' },
+                        { label:'IRRIGATION',
+                          value: weather.rainfall > 150 ? 'Low need' : 'Required' },
+                      ].map(item => (
+                        <div key={item.label} style={{
+                          display:'flex', justifyContent:'space-between',
+                          marginBottom:4
+                        }}>
+                          <span style={{ fontFamily:"'Courier New'",
+                                          fontSize:8, color:'#666680',
+                                          letterSpacing:1 }}>
+                            {item.label}
+                          </span>
+                          <span style={{ fontFamily:"'Courier New'",
+                                          fontSize:8, color:'#9CA3AF',
+                                          letterSpacing:1 }}>
+                            {item.value}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* CROP RESULT */}
+          <AnimatePresence>
+            {result && !loading && (
+              <motion.div
+                initial={{ opacity:0, scale:0.97 }}
+                animate={{ opacity:1, scale:1 }}
+                transition={{ duration:0.5, ease:'backOut' }}>
+
+                {/* Main recommendation */}
+                <div style={{ background:'#0D0D1A',
+                              border:'1px solid #FF6600',
+                              borderRadius:4, padding:20,
+                              boxShadow:'0 0 30px #FF660022',
+                              marginBottom:12 }}>
+
+                  <div style={{ display:'flex', justifyContent:'space-between',
+                                alignItems:'flex-start', marginBottom:16 }}>
+                    <div>
+                      <p style={{ fontFamily:"'Courier New'", fontSize:9,
+                                   color:'#FF660066', letterSpacing:3, margin:'0 0 4px' }}>
+                        // MAGI RECOMMENDATION
+                      </p>
+                      <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+                        <span style={{ fontSize:40 }}>{cropInfo.emoji}</span>
+                        <p style={{ fontFamily:"'Orbitron'", fontSize:28,
+                                     fontWeight:900, color:'#FF6600',
+                                     margin:0, letterSpacing:3,
+                                     textShadow:'0 0 20px #FF660088' }}>
+                          {result.recommended_crop?.toUpperCase()}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Confidence */}
+                    <div style={{ textAlign:'right' }}>
+                      <p style={{ fontFamily:"'Courier New'", fontSize:8,
+                                   color:'#666680', letterSpacing:2, margin:'0 0 4px' }}>
+                        CONFIDENCE
+                      </p>
+                      <p style={{ fontFamily:"'Orbitron'", fontSize:32,
+                                   fontWeight:900, color:'#00FF41',
+                                   margin:0, textShadow:'0 0 15px #00FF4188' }}>
+                        {result.confidence}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Confidence bar */}
+                  <div style={{ marginBottom:16 }}>
+                    <div style={{ height:6, background:'#FF660011',
+                                   borderRadius:1, overflow:'hidden' }}>
+                      <motion.div
+                        initial={{ width:0 }}
+                        animate={{ width: result.confidence }}
+                        transition={{ duration:1, ease:'easeOut' }}
+                        style={{ height:'100%', borderRadius:1,
+                                  background:'linear-gradient(90deg,#FF660088,#00FF41)',
+                                  boxShadow:'0 0 8px #00FF4166' }} />
+                    </div>
+                  </div>
+
+                  {/* Crop details */}
+                  <div style={{ display:'grid',
+                                gridTemplateColumns:'repeat(auto-fit, minmax(130px, 1fr))', gap:8 }}>
+                    {[
+                      { label:'AVG PROFIT',  value:cropInfo.profit,  color:'#FFD700' },
+                      { label:'WATER NEED',  value:cropInfo.water,   color:'#00FFFF' },
+                      { label:'SEASON',      value:cropInfo.season,  color:'#FF6600' },
+                      { label:'STATE',       value:selectedState,    color:'#8B5CF6' },
+                    ].map(item => (
+                      <div key={item.label} style={{
+                        background:'#0A0A0F',
+                        border:`1px solid ${item.color}22`,
+                        borderRadius:2, padding:'10px 8px',
+                        textAlign:'center'
+                      }}>
+                        <p style={{ fontFamily:"'Courier New'", fontSize:7,
+                                     color:'#666680', letterSpacing:2,
+                                     margin:'0 0 4px', textTransform:'uppercase' }}>
+                          {item.label}
+                        </p>
+                        <p style={{ fontFamily:"'Orbitron'", fontSize:10,
+                                     fontWeight:700, color:item.color,
+                                     margin:0, letterSpacing:1 }}>
+                          {item.value}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Top 3 alternatives */}
+                {result.top3?.length > 1 && (
+                  <div style={{ background:'#0D0D1A',
+                                border:'1px solid #FF660022',
+                                borderRadius:4, padding:16 }}>
+                    <p style={{ fontFamily:"'Courier New'", fontSize:8,
+                                 color:'#FF660066', letterSpacing:3, margin:'0 0 10px' }}>
+                      // ALTERNATIVE RECOMMENDATIONS
+                    </p>
+                    {result.top3.slice(1).map((alt, i) => {
+                      const altKey  = alt.crop?.toLowerCase().replace(/\s/g,'')
+                      const altInfo = CROP_INFO[altKey] || { emoji:'🌱' }
+                      return (
+                        <div key={i} style={{
+                          display:'flex', alignItems:'center',
+                          gap:10, marginBottom:8,
+                          padding:'8px 10px',
+                          background:'#0A0A0F',
+                          borderRadius:2, border:'1px solid #FF660011'
+                        }}>
+                          <span style={{ fontSize:18 }}>{altInfo.emoji}</span>
+                          <span style={{ fontFamily:"'Orbitron'", fontSize:11,
+                                          color:'#9CA3AF', flex:1, letterSpacing:1 }}>
+                            {alt.crop?.toUpperCase()}
+                          </span>
+                          <div style={{ width:80, height:4,
+                                         background:'#FF660011', borderRadius:1 }}>
+                            <div style={{
+                              height:'100%', borderRadius:1,
+                              background:'#FF660044',
+                              width:`${alt.confidence}%`
+                            }} />
+                          </div>
+                          <span style={{ fontFamily:"'Courier New'", fontSize:9,
+                                          color:'#FF660066', minWidth:36,
+                                          textAlign:'right' }}>
+                            {alt.confidence}%
+                          </span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+
+                {/* Re-analyze button */}
+                <button
+                  onClick={() => { setResult(null); setSelectedState(null) }}
+                  style={{ width:'100%', padding:'10px', marginTop:10,
+                           background:'transparent',
+                           border:'1px solid #FF660033',
+                           color:'#FF660066',
+                           fontFamily:"'Courier New'", fontSize:10,
+                           letterSpacing:3, cursor:'pointer', borderRadius:2 }}>
+                  // SELECT ANOTHER STATE ►
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+
       <style>{`
-        @keyframes slideInRight {
-          from { opacity: 0; transform: translateX(30px); }
-          to { opacity: 1; transform: translateX(0); }
-        }
-        @keyframes fade-in {
-          from { opacity: 0; transform: scale(0.95); }
-          to { opacity: 1; transform: scale(1); }
-        }
-        .animate-fade-in {
-          animation: fade-in 0.4s ease-out forwards;
+        @keyframes spin {
+          from{ transform:rotate(0deg) }
+          to  { transform:rotate(360deg) }
         }
       `}</style>
-      
-      {/* Top Bar */}
-      <div className="max-w-7xl mx-auto w-full flex justify-between items-center z-10">
-        <button onClick={() => navigate(-1)} className="text-[#FF660088] hover:text-[#FF6600] flex items-center gap-2 transition-colors uppercase text-[11px]" style={{ fontFamily: "'Share Tech Mono', monospace", letterSpacing: 2 }}>
-          <ArrowLeft size={16} /> [GO BACK]
-        </button>
-        <button 
-          onClick={() => setCompareMode(!compareMode)}
-          className={`px-4 py-2 text-[11px] font-bold uppercase transition-all duration-300 border ${compareMode ? 'bg-[#FF660022] text-[#FF6600] border-[#FF6600]' : 'bg-[#0A0A0F] text-[#666680] border-[#FF660044] hover:bg-[#FF660011] hover:text-[#FF6600]'}`}
-          style={{ fontFamily: "'Orbitron', sans-serif", letterSpacing: 2, borderRadius: 2 }}
-        >
-          {compareMode ? 'DISABLE COMPARE' : 'ENABLE COMPARE'}
-        </button>
-      </div>
-
-      <div className="max-w-7xl mx-auto w-full z-10">
-        {compareMode ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 relative">
-            <div className="absolute left-1/2 top-[10%] -translate-x-1/2 -translate-y-1/2 bg-[#FF6600] text-[#0A0A0F] w-10 h-10 flex items-center justify-center font-black shadow-[0_0_20px_#FF660088] z-20" style={{ fontFamily: "'Orbitron', sans-serif", borderRadius: 2 }}>VS</div>
-            <div className="nge-card bg-[#0D0D1A] p-4 sm:p-6 flex flex-col gap-6" data-label="// SCENARIO A" style={{ borderRadius: 2 }}>
-               <div className="w-full"><InputPanel sliders={slidersA} setSliders={setSlidersA} onAnalyze={handleAnalyze} isAnalyzing={isAnalyzing} t={t} /></div>
-               <div className="w-full bg-[#0A0A0F] p-4 border border-[#FF660033]" style={{ borderRadius: 2 }}><ResultPanel sliders={slidersA} result={liveResultA} isAnalyzing={isAnalyzing} t={t} /></div>
-            </div>
-            <div className="nge-card bg-[#0D0D1A] p-4 sm:p-6 flex flex-col gap-6" data-label="// SCENARIO B" style={{ borderRadius: 2 }}>
-               <div className="w-full"><InputPanel sliders={slidersB} setSliders={setSlidersB} onAnalyze={() => {}} isAnalyzing={false} t={t} /></div>
-               <div className="w-full bg-[#0A0A0F] p-4 border border-[#FF660033]" style={{ borderRadius: 2 }}><ResultPanel sliders={slidersB} result={liveResultB} isAnalyzing={false} t={t} /></div>
-            </div>
-          </div>
-        ) : (
-          <div className="nge-card bg-[#0D0D1A] p-4 sm:p-8" data-label="// PRIMARY ANALYSIS" style={{ borderRadius: 2 }}>
-            <div className="flex flex-col md:flex-row gap-8 lg:gap-12">
-              <div className="w-full md:w-[55%]">
-                <InputPanel sliders={slidersA} setSliders={setSlidersA} onAnalyze={handleAnalyze} isAnalyzing={isAnalyzing} t={t} />
-              </div>
-              <div className="w-full md:w-[45%] bg-[#0A0A0F] p-6 border border-[#FF660033]" style={{ borderRadius: 2 }}>
-                <ResultPanel sliders={slidersA} result={liveResultA} isAnalyzing={isAnalyzing} t={t} />
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* History Section */}
-      <div className="max-w-7xl mx-auto w-full mt-8 z-10">
-        <h3 className="text-sm font-bold text-[#FF6600] mb-4 uppercase" style={{ fontFamily: "'Orbitron', sans-serif", letterSpacing: 3 }}>
-          // PREVIOUS ANALYSES
-        </h3>
-        {history.length === 0 ? (
-          <p className="text-[#666680] text-[11px] uppercase" style={{ fontFamily: "'Share Tech Mono', monospace" }}>NO LOGS IN ARCHIVE.</p>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {history.map((h, i) => (
-              <div key={i} className="bg-[#0A0A0F] border border-[#FF660044] p-4 flex justify-between items-center group nge-hover" style={{ borderRadius: 2 }}>
-                <div>
-                  <p className="text-[10px] text-[#FF660088] mb-1" style={{ fontFamily: "'Share Tech Mono', monospace" }}>T-{h.date}</p>
-                  <p className="text-[#E8E8E8] font-bold text-sm uppercase" style={{ fontFamily: "'Rajdhani', sans-serif", letterSpacing: 1 }}>{h.crop} <span className="text-[#00FF41] text-[10px] ml-2" style={{ fontFamily: "'Share Tech Mono', monospace" }}>{h.confidence}% MATCH</span></p>
-                </div>
-                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button onClick={() => restoreHistory(h)} className="text-[9px] bg-[#0D0D1A] border border-[#FF6600] text-[#FF6600] hover:bg-[#FF660022] px-2 py-1 uppercase" style={{ fontFamily: "'Share Tech Mono', monospace", borderRadius: 2 }}>RESTORE</button>
-                  <button onClick={() => deleteHistory(i)} className="text-[#FF0033] hover:text-[#FF003388] p-1 border border-[#FF003344] bg-[#1A0500]" style={{ borderRadius: 2 }}><Trash2 size={12} /></button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
     </div>
-  );
-};
-
-export default CropRecommendation;
+  )
+}
