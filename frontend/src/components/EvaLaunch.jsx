@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import * as THREE from 'three'
 import { gsap } from 'gsap'
+import ATFieldCrack from './ATFieldCrack'
 
 export default function EvaLaunch({ onComplete }) {
   const canvasRef    = useRef(null)
@@ -19,6 +20,8 @@ export default function EvaLaunch({ onComplete }) {
   const [showSkip,   setShowSkip]   = useState(false)
   const [redBorder,  setRedBorder]  = useState(false)
   const [showSub,    setShowSub]    = useState(false)
+  const [showCrack,  setShowCrack]  = useState(false)
+  const [crackDone,  setCrackDone]  = useState(false)
 
   const FULL_LOGO   = 'AMRITKRISHI'
   const LOGO_SUB    = 'MAGI AGRICULTURAL INTELLIGENCE SYSTEM // v2.0'
@@ -31,6 +34,11 @@ export default function EvaLaunch({ onComplete }) {
       onComplete
     })
   }, [onComplete])
+
+  const handleShatterComplete = useCallback(() => {
+    setCrackDone(true)
+    handleComplete()
+  }, [handleComplete])
 
   // Type out logo letter by letter
   const typeLogo = useCallback(() => {
@@ -356,13 +364,19 @@ export default function EvaLaunch({ onComplete }) {
       typeLogo()
     }, null, 5.3)
 
+    // After logo types out — trigger AT-Field crack
+    tl.call(() => {
+      setShowCrack(true)
+    }, null, 5.3 + FULL_LOGO.length * 0.06 + 0.8)
+
     // Slow camera rotation for dramatic hold
     tl.to(camera.rotation, {
       y: 0.08, duration: 4, ease: 'power1.inOut'
     }, 5.3)
 
-    // Auto complete
-    tl.call(() => handleComplete(), null, 9.5)
+    // Auto complete as fallback in case shatter takes too long
+    // The shatter will trigger completion earlier but this ensures no infinite hangs
+    tl.call(() => handleComplete(), null, 12.0)
 
     // Resize
     const onResize = () => {
@@ -633,6 +647,45 @@ export default function EvaLaunch({ onComplete }) {
         background:'white', opacity:0,
         pointerEvents:'none', zIndex:10
       }} />
+
+      {/* AT-Field Crack */}
+      {showCrack && !crackDone && (
+        <ATFieldCrack onShatterComplete={handleShatterComplete} />
+      )}
+
+      {/* Burst Particles */}
+      {showCrack && (
+        <div style={{
+          position:'fixed', inset:0, zIndex:10001,
+          pointerEvents:'none', overflow:'hidden'
+        }}>
+          {Array.from({length:20}).map((_, i) => (
+            <div key={i} style={{
+              position:'absolute',
+              top:'50%', left:'50%',
+              width: 4 + Math.random() * 6,
+              height: 4 + Math.random() * 6,
+              background:'#FF6600',
+              borderRadius:'50%',
+              boxShadow:'0 0 8px #FF6600',
+              animation:`burst${i} 1s ease-out forwards`,
+              '--tx': `${(Math.random()-0.5)*200}vw`,
+              '--ty': `${(Math.random()-0.5)*200}vh`,
+            }} />
+          ))}
+          <style>{`
+            ${Array.from({length:20}).map((_, i) => `
+              @keyframes burst${i} {
+                0%  { transform:translate(-50%,-50%) scale(1); opacity:1 }
+                100%{ transform:translate(
+                        calc(-50% + ${(Math.random()-0.5)*100}vw),
+                        calc(-50% + ${(Math.random()-0.5)*100}vh)
+                      ) scale(0); opacity:0 }
+              }
+            `).join('')}
+          `}</style>
+        </div>
+      )}
 
       <style>{`
         @keyframes countPulse {
