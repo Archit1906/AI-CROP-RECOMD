@@ -1,19 +1,19 @@
-import joblib, numpy as np
+# backend/routes/crop.py — update to use saved label encoder
+
+import joblib, numpy as np, json, os
 from fastapi import APIRouter
 from pydantic import BaseModel
 
 router = APIRouter()
-model = joblib.load("models/crop_model.pkl")
-scaler = joblib.load("models/crop_scaler.pkl")
 
-class CropInput(BaseModel):
-    nitrogen: float
-    phosphorus: float
-    potassium: float
-    temperature: float
-    humidity: float
-    ph: float
-    rainfall: float
+BASE = os.path.dirname(__file__)
+
+model   = joblib.load(os.path.join(BASE, "../models/crop_model.pkl"))
+scaler  = joblib.load(os.path.join(BASE, "../models/crop_scaler.pkl"))
+encoder = joblib.load(os.path.join(BASE, "../models/crop_label_encoder.pkl"))
+
+with open(os.path.join(BASE, "../models/crop_classes.json")) as f:
+    CLASS_NAMES = json.load(f)
 
 CROP_DATA = {
     "rice":        {"emoji":"🌾","profit":"₹28,000/acre","water":"High","season":"Kharif","days":"90-120"},
@@ -40,22 +40,56 @@ CROP_DATA = {
     "coffee":      {"emoji":"☕","profit":"₹75,000/acre","water":"High","season":"Annual","days":"365"},
 }
 
+class CropInput(BaseModel):
+    nitrogen:    float
+    phosphorus:  float
+    potassium:   float
+    temperature: float
+    humidity:    float
+    ph:          float
+    rainfall:    float
+
 @router.post("/predict-crop")
 def predict_crop(data: CropInput):
-    features = np.array([[data.nitrogen, data.phosphorus, data.potassium,
-                          data.temperature, data.humidity, data.ph, data.rainfall]])
+    features = np.array([[
+        data.nitrogen, data.phosphorus, data.potassium,
+        data.temperature, data.humidity, data.ph, data.rainfall
+    ]])
     features_scaled = scaler.transform(features)
-    probabilities = model.predict_proba(features_scaled)[0]
-    classes = model.classes_
-    top3_indices = np.argsort(probabilities)[::-1][:3]
+
+    # Get calibrated probabilities — much more accurate than raw RF
+    probabilities   = model.predict_proba(features_scaled)[0]
+    top5_indices    = np.argsort(probabilities)[::-1][:5]
+
     top3 = []
-    for idx in top3_indices:
-        name = classes[idx]
+    for idx in top5_indices:
+        crop_name  = CLASS_NAMES[idx]
         confidence = round(float(probabilities[idx]) * 100, 1)
-        info = CROP_DATA.get(name.lower().replace(" ",""), {"emoji":"🌱","profit":"N/A","water":"Medium","season":"Kharif","days":"90-120"})
-        top3.append({"crop": name.capitalize(), "emoji": info["emoji"], "confidence": confidence,
-                     "profit": info["profit"], "water": info["water"], "season": info["season"], "days": info["days"]})
+        info       = CROP_DATA.get(crop_name.lower().replace(" ",""), {
+            "emoji":"🌱","profit":"N/A",
+            "water":"Medium","season":"Kharif","days":"90-120"
+        })
+        top3.append({
+            "crop":       crop_name.capitalize(),
+            "emoji":      info["emoji"],
+            "confidence": confidence,
+            "profit":     info["profit"],
+            "water":      info["water"],
+            "season":     info["season"],
+            "days":       info["days"]
+        })
+        if len(top3) == 3:
+            break
+
     best = top3[0]
-    return {"recommended_crop": best["crop"], "confidence": f"{best['confidence']}%",
-            "top3": top3, "details": {"avg_profit": best["profit"], "water_req": best["water"],
-            "season": best["season"], "duration": best["days"]}}
+    return {
+        "recommended_crop": best["crop"],
+        "confidence":       f"{best['confidence']}%",
+        "top3":             top3,
+        "details": {
+            "avg_profit": best["profit"],
+            "water_req":  best["water"],
+            "season":     best["season"],
+            "duration":   best["days"]
+        }
+    }

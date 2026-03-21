@@ -19,9 +19,15 @@ NUM_CLASSES  = 38
 train_gen = ImageDataGenerator(
     rescale=1./255,
     validation_split=0.2,
-    rotation_range=20,
+    rotation_range=40,
+    width_shift_range=0.2,
+    height_shift_range=0.2,
+    shear_range=0.2,
+    zoom_range=0.3,
     horizontal_flip=True,
-    zoom_range=0.2
+    vertical_flip=True,
+    brightness_range=[0.7, 1.3],  # handles lighting variation
+    fill_mode='nearest'
 )
 
 if os.path.exists(DATASET_PATH):
