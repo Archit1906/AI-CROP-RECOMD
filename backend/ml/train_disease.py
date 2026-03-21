@@ -9,7 +9,7 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 import os
 
-DATASET_PATH = "plantvillage/"
+DATASET_PATH = "plantvillage dataset/color/"
 IMG_SIZE     = (224, 224)
 BATCH_SIZE   = 32
 EPOCHS       = 10
@@ -49,10 +49,16 @@ if os.path.exists(DATASET_PATH):
     model = Model(inputs=base.input, outputs=out)
     model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
-    model.fit(train_data, validation_data=val_data, epochs=EPOCHS)
-
     os.makedirs("../models", exist_ok=True)
-    model.save("../models/plant_disease_model.h5")
-    print("✅ Model saved!")
+    checkpoint = tf.keras.callbacks.ModelCheckpoint(
+        "../models/plant_disease_model.h5",
+        save_best_only=True,
+        monitor='val_accuracy',
+        verbose=1
+    )
+
+    model.fit(train_data, validation_data=val_data, epochs=EPOCHS, callbacks=[checkpoint])
+
+    print("✅ Model training complete and best version saved!")
 else:
     print(f"Dataset path {DATASET_PATH} not found. Please download it first.")

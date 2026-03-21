@@ -47,11 +47,11 @@ FALLBACK_PRICES = {
 
 def generate_price_history(base_price: float, months: int = 12):
     """Generate realistic price history with seasonal variation"""
-    history = []
+    history: list[dict] = []
     month_names = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
     today = datetime.now()
     
-    price = base_price * 0.75  # start lower
+    price = float(base_price) * 0.75  # start lower
     for i in range(months):
         month_idx = (today.month - months + i) % 12
         # Add seasonal variation + random noise
@@ -66,7 +66,13 @@ def generate_price_history(base_price: float, months: int = 12):
         })
     
     # Last point = current price
-    history[-1]["price"] = base_price
+    if history:
+        history[-1] = {
+            "month": history[-1]["month"],
+            "price": round(float(base_price)),
+            "min": round(float(base_price) * 0.92),
+            "max": round(float(base_price) * 1.08)
+        }
     return history
 
 @router.get("/market-prices/{state}")
@@ -96,7 +102,7 @@ async def get_market_prices(state: str, district: str = "All"):
                                 "emoji": "🌾",
                                 "price": int(r.get("modal_price", 0)),
                                 "unit": "Quintal",
-                                "change": round(random.uniform(-5, 10), 1)
+                                "change": float(f"{random.uniform(-5, 10):.1f}")
                             })
                         prices = real_prices
         except:
@@ -107,13 +113,13 @@ async def get_market_prices(state: str, district: str = "All"):
     for p in prices:
         result.append({
             **p,
-            "history_1m": generate_price_history(p["price"], 30),
-            "history_6m": generate_price_history(p["price"], 6),
-            "history_1y": generate_price_history(p["price"], 12),
+            "history_1m": generate_price_history(float(p["price"]), 30),
+            "history_6m": generate_price_history(float(p["price"]), 6),
+            "history_1y": generate_price_history(float(p["price"]), 12),
         })
     
     # Best time to sell recommendation
-    rising = [p for p in prices if p["change"] > 5]
+    rising = [p for p in prices if float(p["change"]) > 5]
     best_sell = rising[0]["crop"] if rising else None
     
     return {
@@ -128,7 +134,7 @@ async def get_market_prices(state: str, district: str = "All"):
 @router.get("/market-prices/{state}/crop/{crop_name}")
 async def get_crop_detail(state: str, crop_name: str):
     prices = FALLBACK_PRICES.get(state, FALLBACK_PRICES["Tamil Nadu"])
-    crop = next((p for p in prices if p["crop"].lower() == crop_name.lower()), None)
+    crop = next((p for p in prices if str(p["crop"]).lower() == crop_name.lower()), None)
     
     if not crop:
         return {"error": "Crop not found"}
@@ -137,9 +143,9 @@ async def get_crop_detail(state: str, crop_name: str):
         "crop": crop["crop"],
         "current_price": crop["price"],
         "change": crop["change"],
-        "history_1m": generate_price_history(crop["price"], 30),
-        "history_6m": generate_price_history(crop["price"], 6),
-        "history_1y": generate_price_history(crop["price"], 12),
-        "prediction_next_month": round(crop["price"] * (1 + random.uniform(0.02, 0.08))),
-        "recommendation": "Good time to sell" if crop["change"] > 3 else "Wait for better price"
+        "history_1m": generate_price_history(float(crop["price"]), 30),
+        "history_6m": generate_price_history(float(crop["price"]), 6),
+        "history_1y": generate_price_history(float(crop["price"]), 12),
+        "prediction_next_month": round(float(crop["price"]) * (1 + random.uniform(0.02, 0.08))),
+        "recommendation": "Good time to sell" if float(crop["change"]) > 3 else "Wait for better price"
     }

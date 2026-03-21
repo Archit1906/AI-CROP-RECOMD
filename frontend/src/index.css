@@ -157,3 +157,15 @@ body::after {
     @apply font-display font-bold;
   }
 }
+
+@keyframes nge-glitch {
+  0%   { text-shadow: 2px 0 #FF6600, -2px 0 #00FFFF; clip-path: inset(0 0 95% 0) }
+  10%  { clip-path: inset(10% 0 80% 0) }
+  20%  { clip-path: inset(40% 0 50% 0) }
+  30%  { clip-path: inset(70% 0 20% 0) }
+  40%  { clip-path: inset(0 0 0 0); text-shadow: none }
+  100% { clip-path: inset(0 0 0 0); text-shadow: none }
+}
+.logo-glitch-in {
+  animation: nge-glitch 1s steps(1) forwards;
+}

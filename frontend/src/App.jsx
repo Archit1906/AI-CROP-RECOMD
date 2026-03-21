@@ -10,27 +10,43 @@ import MarketAnalytics from './pages/MarketAnalytics';
 import Chatbot from './pages/Chatbot';
 import GovernmentSchemes from './pages/GovernmentSchemes';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { useState } from 'react';
+import MagiIntro from './components/MagiIntro';
 
 export default function App() {
+  const [introComplete, setIntroComplete] = useState(
+    () => sessionStorage.getItem('intro_shown') === 'true'
+  )
+
+  const handleIntroComplete = () => {
+    sessionStorage.setItem('intro_shown', 'true')
+    setIntroComplete(true)
+  }
+
   return (
     <ThemeProvider>
-      <BrowserRouter>
-        <div className="flex h-screen hex-bg overflow-hidden text-[#E8E8E8]" style={{ background: '#0A0A0F' }}>
-          <Sidebar />
-          <main className="flex-1 overflow-y-auto w-full lg:ml-0 ml-20" style={{ background: '#0A0A0F' }}>
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/crop" element={<CropRecommendation />} />
-              <Route path="/disease" element={<DiseaseDetection />} />
-              <Route path="/weather" element={<WeatherPage />} />
-              <Route path="/market" element={<MarketPrices />} />
-              <Route path="/market/analytics" element={<MarketAnalytics />} />
-              <Route path="/chat" element={<Chatbot />} />
-              <Route path="/schemes" element={<GovernmentSchemes />} />
-            </Routes>
-          </main>
-        </div>
-      </BrowserRouter>
+      {!introComplete && (
+        <MagiIntro onComplete={handleIntroComplete} />
+      )}
+      <div style={{ opacity: introComplete ? 1 : 0, transition:'opacity 0.5s' }}>
+        <BrowserRouter>
+          <div className="flex h-screen hex-bg overflow-hidden text-[#E8E8E8]" style={{ background: '#0A0A0F' }}>
+            <Sidebar />
+            <main className="flex-1 overflow-y-auto w-full lg:ml-0 ml-20" style={{ background: '#0A0A0F' }}>
+              <Routes>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/crop" element={<CropRecommendation />} />
+                <Route path="/disease" element={<DiseaseDetection />} />
+                <Route path="/weather" element={<WeatherPage />} />
+                <Route path="/market" element={<MarketPrices />} />
+                <Route path="/market/analytics" element={<MarketAnalytics />} />
+                <Route path="/chat" element={<Chatbot />} />
+                <Route path="/schemes" element={<GovernmentSchemes />} />
+              </Routes>
+            </main>
+          </div>
+        </BrowserRouter>
+      </div>
     </ThemeProvider>
   );
 }

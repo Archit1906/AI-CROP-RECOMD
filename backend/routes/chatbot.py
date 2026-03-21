@@ -34,14 +34,14 @@ Rules:
 - For crop questions always mention: best season, water need, profit estimate
 - Never give wrong medical or chemical advice — say "consult local agricultural officer" if unsure"""
 
-class ChatRequest(BaseModel):
-    message: str
-    language: str = "en"
-    history: list = []
-
 class Message(BaseModel):
     role: str
     content: str
+
+class ChatRequest(BaseModel):
+    message: str
+    language: str = "en"
+    history: list[Message] = []
 
 @router.post("/chatbot")
 async def chat(req: ChatRequest):
@@ -56,10 +56,10 @@ async def chat(req: ChatRequest):
     
     # Add history (last 10 messages only to save tokens)
     for msg in req.history[-10:]:
-        role = "user" if msg["role"] == "user" else "model"
+        role = "user" if msg.role == "user" else "model"
         messages.append({
             "role": role,
-            "parts": [msg["content"]]
+            "parts": [msg.content]
         })
     
     try:
