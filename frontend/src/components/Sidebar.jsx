@@ -186,6 +186,23 @@ const Sidebar = () => {
           </div>
         </div>
 
+        {/* Replay Intro button */}
+        <button
+          onClick={() => {
+            sessionStorage.removeItem('intro_shown')
+            window.location.reload()
+          }}
+          style={{
+            width:'100%', padding:'6px',
+            background:'transparent',
+            border:'1px solid #FF660022',
+            color:'#FF660044', fontFamily:"'Courier New'",
+            fontSize:8, letterSpacing:2, cursor:'pointer',
+            borderRadius:1, marginTop:8
+          }}>
+          // REPLAY INTRO
+        </button>
+
         {/* NERV footer stamp */}
         <p style={{ fontFamily:"'Share Tech Mono'", fontSize:8, color:'#FF660033',
                     textAlign:'center', margin:'12px 0 0', letterSpacing:2 }}>

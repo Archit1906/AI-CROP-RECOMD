@@ -12,6 +12,9 @@ import GovernmentSchemes from './pages/GovernmentSchemes';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { useState } from 'react';
 import MagiIntro from './components/MagiIntro';
+import EvaLaunch from './components/EvaLaunch';
+
+const INTRO_TYPE = 'launch';
 
 export default function App() {
   const [introComplete, setIntroComplete] = useState(
@@ -23,12 +26,18 @@ export default function App() {
     setIntroComplete(true)
   }
 
+  const IntroComponent = INTRO_TYPE === 'magi' ? MagiIntro : EvaLaunch
+
   return (
     <ThemeProvider>
       {!introComplete && (
-        <MagiIntro onComplete={handleIntroComplete} />
+        <IntroComponent onComplete={handleIntroComplete} />
       )}
-      <div style={{ opacity: introComplete ? 1 : 0, transition:'opacity 0.5s' }}>
+      <div style={{
+        opacity: introComplete ? 1 : 0,
+        transition: 'opacity 0.6s',
+        pointerEvents: introComplete ? 'all' : 'none'
+      }}>
         <BrowserRouter>
           <div className="flex h-screen hex-bg overflow-hidden text-[#E8E8E8]" style={{ background: '#0A0A0F' }}>
             <Sidebar />
